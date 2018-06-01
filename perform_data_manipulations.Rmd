@@ -1,0 +1,172 @@
+---
+title: "R for Actuaries Data Manipulations"
+author: "Mick Cooney <mickcooney@gmail.com>"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    number_sections: true
+    fig_caption: yes
+    theme: cerulean
+  pdf_document: default
+---
+
+```{r knit_opts, include = FALSE}
+rm(list = ls())
+
+library(tidyverse)
+library(scales)
+library(purrr)
+library(cowplot)
+
+options(width = 80L
+       ,warn  = 1)
+
+knitr::opts_chunk$set(tidy  = FALSE
+                     ,cache = FALSE
+                     ,warning = FALSE
+                     ,message = FALSE
+                     ,fig.height =  7
+                     ,fig.width  = 11)
+
+
+set.seed(42)
+
+download_data_dir <- 'C:/Work/vbox_share/shared_data/generated_data'
+```
+
+# Load Claim Transactions Data
+
+First we load up the transactional data for the claims
+
+```{r load_claim_transactions, echo=TRUE}
+data_file <- paste0(download_data_dir
+                   ,'/captive/claims_transaction_data_20170630.csv')
+
+claim_transactions_tbl <- read_csv(data_file
+                                  ,progress = FALSE
+                                   )
+
+claim_transactions_tbl %>% glimpse()
+```
+
+## Build Quick Year Triangles
+
+Now we want to build a quick claim triangle
+
+```{r build_year_triangles, echo=TRUE}
+bad_triangle_tbl <- claim_transactions_tbl %>%
+    mutate(claim_year = year
+          ,value_year = transaction_date %>% format('%Y') %>% as.numeric) %>%
+    dplyr::select(country_code, claim_id, claim_type, claim_year, value_year, amount) %>%
+    group_by(country_code, claim_type, claim_year, value_year) %>%
+    summarise(total_amount = sum(amount)) %>%
+    mutate(dev_year = value_year - claim_year + 1) %>%
+    ungroup() %>%
+    dplyr::select(country_code, claim_type, claim_year, dev_year, total_amount)
+
+
+bi_plot_tbl <- bad_triangle_tbl %>% filter(claim_type == 'BI')
+pd_plot_tbl <- bad_triangle_tbl %>% filter(claim_type == 'PD')
+
+ggplot(bi_plot_tbl %>% mutate(claim_year = claim_year %>% as.character)) +
+    geom_line(aes(x = dev_year, y = total_amount, colour = claim_year)) +
+    facet_wrap(~ country_code, scales = 'free_y') +
+    scale_y_continuous(labels = scales::comma) +
+    xlab('Development Year') +
+    ylab('Total Development')
+
+ggplot(pd_plot_tbl %>% mutate(claim_year = claim_year %>% as.character)) +
+    geom_line(aes(x = dev_year, y = total_amount, colour = claim_year)) +
+    facet_wrap(~ country_code, scales = 'free_y') +
+    scale_y_continuous(labels = scales::comma) +
+    xlab('Development Year') +
+    ylab('Total Development')
+
+```
+
+## Fixing Triangle Calculation
+
+We are not properly rolling forward claims after they are done developing, so
+we need to back fill all those.
+
+```{r fill_full_triangle, echo=TRUE}
+movements_tbl <- claim_transactions_tbl %>%
+    mutate(claim_year = year
+          ,trans_year = transaction_date %>% format('%Y') %>% as.numeric
+          ,dev_time   = trans_year - claim_year + 1
+          ) %>%
+    group_by(claim_id, dev_time) %>%
+    top_n(1, wt = transaction_date) %>%
+    ungroup() %>%
+    dplyr::select(country_code, claim_type, claim_year, claim_id, dev_time, amount)
+
+
+
+triangle_zero_tbl <- movements_tbl %>%
+    dplyr::select(country_code, claim_type, claim_year, claim_id) %>%
+    distinct() %>%
+    mutate(dev_time = 0, amount = 0)
+
+
+calc_incr_tbl <- list(triangle_zero_tbl, movements_tbl) %>%
+    bind_rows() %>%
+    group_by(country_code, claim_type, claim_year, claim_id) %>%
+    arrange(dev_time) %>%
+    mutate(increment = amount - lag(amount)) %>%
+    ungroup() %>%
+    arrange(country_code, claim_type, claim_year, claim_id, dev_time) %>%
+    replace_na(list(increment = 0))
+
+calc_incr_tbl <- calc_incr_tbl %>%
+    dplyr::select(claim_id, claim_type, claim_year, dev_time, increment)
+
+
+incr_values_tbl <- claim_transactions_tbl %>%
+    dplyr::select(country_code, claim_type, claim_year = year, claim_id) %>%
+    distinct() %>%
+    mutate(data = list(data_frame(dev_time = 0:20))) %>%
+    unnest() %>%
+    left_join(calc_incr_tbl, by = c('claim_id', 'claim_type', 'claim_year', 'dev_time')) %>%
+    replace_na(list(increment = 0))
+
+
+full_dev_tbl <- incr_values_tbl %>%
+    group_by(country_code, claim_type, claim_year) %>%
+    arrange(dev_time) %>%
+    mutate(cuml_amount = cumsum(increment)) %>%
+    ungroup() %>%
+    arrange(country_code, claim_type, claim_year, claim_id, dev_time)
+
+long_triangle_tbl <- full_dev_tbl %>%
+    group_by(country_code, claim_type, claim_year, dev_time) %>%
+    summarise(total_cuml = sum(cuml_amount)) %>%
+    ungroup() %>%
+    filter(claim_year + dev_time <= 2017)
+
+
+long_bi_tbl <- long_triangle_tbl %>%
+    filter(claim_type == 'BI'
+          ,claim_year >= 2010
+           ) %>%
+    mutate(claim_year = claim_year %>% as.character()
+          ,total_cuml = total_cuml / 1e6
+           )
+
+long_pd_tbl <- long_triangle_tbl %>%
+    filter(claim_type == 'PD'
+          ,claim_year >= 2010
+           ) %>%
+    mutate(claim_year = claim_year %>% as.character()
+          ,total_cuml = total_cuml / 1e6
+           )
+
+
+ggplot(long_pd_tbl) +
+    geom_line(aes(x = dev_time, y = total_cuml, colour = claim_year)) +
+    facet_wrap(~ country_code, scales = 'free_y') +
+    scale_y_continuous(labels = scales::comma) +
+    xlab("Development Time") +
+    ylab("Total Amount")
+```
+
