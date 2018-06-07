@@ -1,0 +1,65 @@
+---
+title: "R for Actuaries"
+subtitle: "Part 1 - Loading and Checking Data"
+author: "Mick Cooney <mcooney@agrippadataconsulting.com>"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    number_sections: true
+    fig_caption: yes
+    theme: cerulean
+  pdf_document: default
+---
+
+```{r set_options, echo=FALSE}
+options(width = 80L
+       ,warn  = 1)
+
+knitr::opts_chunk$set(tidy  = FALSE
+                     ,cache = FALSE
+                     ,fig.height =  7
+                     ,fig.width  = 11)
+```
+
+
+# Loading and Checking Data
+
+In this exercise we are going to build claims triangles from transactional claim
+data. The claims are from a fictional captive insurer for a large logistics
+company with operations all across Europe.
+
+The data has been provided to us in multiple files, with each file sorted
+according to country. The data is current as of date 30 June 2017.
+
+## Loading Data
+
+Looking into the `data` directory we see thirteen files, of the form
+`XXX_claims_data.csv` where the XXX is the three-letter country code. Thus, UK
+data is in the file `GBR_claims_data.csv` and so on.
+
+### Reading Single Data Files
+
+To get started, we are first going to load in the IRL data and look at it.
+
+```{r load_irl_data, echo=TRUE}
+library(tidyverse)
+
+irl_data_tbl <- read_csv('data/IRL_claims_data.csv')
+
+print(irl_data_tbl)
+```
+
+It is important to look at your data after you load it!
+
+`glimpse()` is a useful tool here to check a table
+
+```{r glimpse_irl_data, echo=TRUE}
+glimpse(irl_data_tbl)
+```
+
+
+
+
+
+

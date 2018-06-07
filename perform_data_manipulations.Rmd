@@ -170,3 +170,17 @@ ggplot(long_pd_tbl) +
     ylab("Total Amount")
 ```
 
+
+# Split Claims Data
+
+```{r split_claims_data, echo=TRUE}
+countries <- claim_transactions_tbl %>% count(country_code) %>% pull(country_code)
+
+for(country in countries) {
+    output_file <- paste0('data/', country, '_claims_data.csv')
+    
+    claim_transactions_tbl %>%
+        filter(country_code == country) %>%
+        write_csv(path = output_file)
+}
+```
