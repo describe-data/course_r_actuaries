@@ -120,7 +120,7 @@ $(document).ready(function () {
 
 
 <h1 class="title toc-ignore">R for Actuaries</h1>
-<h3 class="subtitle"><em>Part 1 - Loading and Checking Data</em></h3>
+<h3 class="subtitle"><em>Part 1 - Checking and Exploring Data</em></h3>
 <h4 class="author"><em>Mick Cooney <a href="mailto:mcooney@agrippadataconsulting.com">mcooney@agrippadataconsulting.com</a></em></h4>
 <h4 class="date"><em>2018-06-07</em></h4>
 
@@ -128,68 +128,49 @@ $(document).ready(function () {
 
 <div id="TOC">
 <ul>
-<li><a href="#loading-and-checking-data"><span class="toc-section-number">1</span> Loading and Checking Data</a><ul>
-<li><a href="#loading-data"><span class="toc-section-number">1.1</span> Loading Data</a><ul>
-<li><a href="#reading-single-data-files"><span class="toc-section-number">1.1.1</span> Reading Single Data Files</a></li>
-</ul></li>
+<li><a href="#checking-and-exploring-data"><span class="toc-section-number">1</span> Checking and Exploring Data</a><ul>
+<li><a href="#claims-transactions-data"><span class="toc-section-number">1.1</span> Claims Transactions Data</a></li>
 </ul></li>
 </ul>
 </div>
 
-<div id="loading-and-checking-data" class="section level1">
-<h1><span class="header-section-number">1</span> Loading and Checking Data</h1>
+<div id="checking-and-exploring-data" class="section level1">
+<h1><span class="header-section-number">1</span> Checking and Exploring Data</h1>
 <p>In this exercise we are going to build claims triangles from transactional claim data. The claims are from a fictional captive insurer for a large logistics company with operations all across Europe.</p>
 <p>The data has been provided to us in multiple files, with each file sorted according to country. The data is current as of date 30 June 2017.</p>
-<div id="loading-data" class="section level2">
-<h2><span class="header-section-number">1.1</span> Loading Data</h2>
-<p>Looking into the <code>data</code> directory we see thirteen files, of the form <code>XXX_claims_data.csv</code> where the XXX is the three-letter country code. Thus, UK data is in the file <code>GBR_claims_data.csv</code> and so on.</p>
-<div id="reading-single-data-files" class="section level3">
-<h3><span class="header-section-number">1.1.1</span> Reading Single Data Files</h3>
-<p>To get started, we are first going to load in the IRL data and look at it.</p>
-<pre class="r"><code>library(tidyverse)
-
-irl_data_tbl &lt;- read_csv('data/IRL_claims_data.csv')</code></pre>
-<pre><code>## Parsed with column specification:
-## cols(
-##   country_code = col_character(),
-##   year = col_integer(),
-##   claim_id = col_character(),
-##   incident_date = col_date(format = &quot;&quot;),
-##   report_date = col_date(format = &quot;&quot;),
-##   transaction_date = col_date(format = &quot;&quot;),
-##   claim_type = col_character(),
-##   amount = col_double()
-## )</code></pre>
-<pre class="r"><code>print(irl_data_tbl)</code></pre>
-<pre><code>## # A tibble: 6,276 x 8
+<p>Reading data from a file is an important topic, but is not a good place to start learning: 80% of the time it is routine and boring, the other 20% of the time it is fiddly and frustrating! We will return to it later.</p>
+<p>For now, we have a script that loads the table <code>claims_transactions_tbl</code> into memory.</p>
+<pre class="r"><code>source('load_data_script.R')</code></pre>
+<div id="claims-transactions-data" class="section level2">
+<h2><span class="header-section-number">1.1</span> Claims Transactions Data</h2>
+<p>THe first thing to do with a dataset is inspect it: look at the first few rows, check the number of rows and columns, and check the data types.</p>
+<pre class="r"><code>print(claims_transactions_tbl)</code></pre>
+<pre><code>## # A tibble: 452,268 x 8
 ##    country_code  year claim_id       incident_date report_date transaction_date
 ##    &lt;chr&gt;        &lt;int&gt; &lt;chr&gt;          &lt;date&gt;        &lt;date&gt;      &lt;date&gt;          
-##  1 IRL           2000 IRL200001CL00~ 2000-01-08    2000-02-15  2000-05-30      
-##  2 IRL           2000 IRL200001CL00~ 2000-01-08    2000-02-15  2000-11-16      
-##  3 IRL           2000 IRL200001CL00~ 2000-01-08    2000-02-15  2000-11-30      
-##  4 IRL           2000 IRL200001CL00~ 2000-01-08    2000-02-15  2001-05-23      
-##  5 IRL           2000 IRL200001CL00~ 2000-01-08    2000-02-15  2001-08-29      
-##  6 IRL           2000 IRL200001CL00~ 2000-01-08    2000-02-15  2002-10-20      
-##  7 IRL           2000 IRL200001CL00~ 2000-01-19    2000-02-15  2000-12-28      
-##  8 IRL           2000 IRL200001CL00~ 2000-01-19    2000-02-15  2002-12-02      
-##  9 IRL           2000 IRL200001CL00~ 2000-01-19    2000-02-15  2003-01-21      
-## 10 IRL           2000 IRL200001CL00~ 2000-01-19    2000-02-15  2003-12-14      
-## # ... with 6,266 more rows, and 2 more variables: claim_type &lt;chr&gt;,
+##  1 AUT           2000 AUT200001CL00… 2000-01-03    2000-01-20  2001-10-06      
+##  2 AUT           2000 AUT200001CL00… 2000-01-03    2000-01-20  2007-08-31      
+##  3 AUT           2000 AUT200001CL00… 2000-01-05    2000-01-13  2000-03-12      
+##  4 AUT           2000 AUT200001CL00… 2000-01-05    2000-01-13  2001-05-30      
+##  5 AUT           2000 AUT200001CL00… 2000-01-05    2000-01-13  2005-04-18      
+##  6 AUT           2000 AUT200001CL00… 2000-01-06    2000-01-15  2001-02-27      
+##  7 AUT           2000 AUT200001CL00… 2000-01-06    2000-01-15  2001-08-01      
+##  8 AUT           2000 AUT200001CL00… 2000-01-06    2000-01-15  2001-10-09      
+##  9 AUT           2000 AUT200001CL00… 2000-01-06    2000-01-15  2002-01-24      
+## 10 AUT           2000 AUT200001CL00… 2000-01-06    2000-01-15  2002-05-09      
+## # ... with 452,258 more rows, and 2 more variables: claim_type &lt;chr&gt;,
 ## #   amount &lt;dbl&gt;</code></pre>
-<p>It is important to look at your data after you load it!</p>
-<p><code>glimpse()</code> is a useful tool here to check a table</p>
-<pre class="r"><code>glimpse(irl_data_tbl)</code></pre>
-<pre><code>## Observations: 6,276
+<pre class="r"><code>glimpse(claims_transactions_tbl)</code></pre>
+<pre><code>## Observations: 452,268
 ## Variables: 8
-## $ country_code     &lt;chr&gt; &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;...
+## $ country_code     &lt;chr&gt; &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;...
 ## $ year             &lt;int&gt; 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 20...
-## $ claim_id         &lt;chr&gt; &quot;IRL200001CL0002&quot;, &quot;IRL200001CL0002&quot;, &quot;IRL200001CL...
-## $ incident_date    &lt;date&gt; 2000-01-08, 2000-01-08, 2000-01-08, 2000-01-08, 2...
-## $ report_date      &lt;date&gt; 2000-02-15, 2000-02-15, 2000-02-15, 2000-02-15, 2...
-## $ transaction_date &lt;date&gt; 2000-05-30, 2000-11-16, 2000-11-30, 2001-05-23, 2...
+## $ claim_id         &lt;chr&gt; &quot;AUT200001CL0001&quot;, &quot;AUT200001CL0001&quot;, &quot;AUT200001CL...
+## $ incident_date    &lt;date&gt; 2000-01-03, 2000-01-03, 2000-01-05, 2000-01-05, 2...
+## $ report_date      &lt;date&gt; 2000-01-20, 2000-01-20, 2000-01-13, 2000-01-13, 2...
+## $ transaction_date &lt;date&gt; 2001-10-06, 2007-08-31, 2000-03-12, 2001-05-30, 2...
 ## $ claim_type       &lt;chr&gt; &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;P...
-## $ amount           &lt;dbl&gt; 313.91, 1598.53, 1459.29, 1556.08, 3734.53, 2624.5...</code></pre>
-</div>
+## $ amount           &lt;dbl&gt; 501.87, 1195.22, 80.06, 406.39, 644.63, 386.06, 29...</code></pre>
 </div>
 </div>
 

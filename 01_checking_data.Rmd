@@ -1,6 +1,6 @@
 ---
 title: "R for Actuaries"
-subtitle: "Part 1 - Loading and Checking Data"
+subtitle: "Part 1 - Checking and Exploring Data"
 author: "Mick Cooney <mcooney@agrippadataconsulting.com>"
 date: "`r Sys.Date()`"
 output:
@@ -23,7 +23,7 @@ knitr::opts_chunk$set(tidy  = FALSE
 ```
 
 
-# Loading and Checking Data
+# Checking and Exploring Data
 
 In this exercise we are going to build claims triangles from transactional claim
 data. The claims are from a fictional captive insurer for a large logistics
@@ -32,31 +32,28 @@ company with operations all across Europe.
 The data has been provided to us in multiple files, with each file sorted
 according to country. The data is current as of date 30 June 2017.
 
-## Loading Data
+Reading data from a file is an important topic, but is not a good place to
+start learning: 80% of the time it is routine and boring, the other 20% of the
+time it is fiddly and frustrating! We will return to it later.
 
-Looking into the `data` directory we see thirteen files, of the form
-`XXX_claims_data.csv` where the XXX is the three-letter country code. Thus, UK
-data is in the file `GBR_claims_data.csv` and so on.
+For now, we have a script that loads the table `claims_transactions_tbl` into
+memory.
 
-### Reading Single Data Files
-
-To get started, we are first going to load in the IRL data and look at it.
-
-```{r load_irl_data, echo=TRUE}
-library(tidyverse)
-
-irl_data_tbl <- read_csv('data/IRL_claims_data.csv')
-
-print(irl_data_tbl)
+```{r load_data, echo=TRUE}
+source('load_data_script.R')
 ```
 
-It is important to look at your data after you load it!
+## Claims Transactions Data
 
-`glimpse()` is a useful tool here to check a table
+THe first thing to do with a dataset is inspect it: look at the first few rows,
+check the number of rows and columns, and check the data types.
 
-```{r glimpse_irl_data, echo=TRUE}
-glimpse(irl_data_tbl)
+```{r inspect_claims_transactions, echo=TRUE}
+print(claims_transactions_tbl)
+
+glimpse(claims_transactions_tbl)
 ```
+
 
 
 
