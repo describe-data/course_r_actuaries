@@ -18,6 +18,9 @@ library(tidyverse)
 library(scales)
 library(purrr)
 library(cowplot)
+library(feather)
+
+
 
 options(width = 80L
        ,warn  = 1)
@@ -169,6 +172,14 @@ ggplot(long_pd_tbl) +
     xlab("Development Time") +
     ylab("Total Amount")
 ```
+
+
+## Write to Disk
+
+```{r write_to_disk, echo=TRUE}
+long_triangle_tbl %>% write_feather('data/yearly_triangles.feather')
+```
+
 
 
 # Split Claims Data
