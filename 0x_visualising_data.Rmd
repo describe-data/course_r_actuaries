@@ -79,7 +79,7 @@ this, we look at the most recent BI claim values for Ireland in 2010 and create
 a boxplot.
 
 ```{r plot_first_boxplot_bi, echo=TRUE}
-plot_tbl <- claims_snapshot_tbl %>%
+plot_tbl <- claim_snapshot_tbl %>%
     filter(country_code == 'IRL'
           ,year         == 2010
           ,claim_type   == 'BI'
@@ -93,7 +93,7 @@ ggplot(plot_tbl) +
 We can also plot the two claim types beside each other at the same time.
 
 ```{r plot_first_boxplot_pd, echo=TRUE}
-plot_tbl <- claims_snapshot_tbl %>%
+plot_tbl <- claim_snapshot_tbl %>%
     filter(country_code == 'IRL'
           ,year         == 2010
            )

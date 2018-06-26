@@ -36,25 +36,51 @@ Reading data from a file is an important topic, but is not a good place to
 start learning: 80% of the time it is routine and boring, the other 20% of the
 time it is fiddly and frustrating! We will return to it later.
 
-For now, we have a script that loads the table `claims_transactions_tbl` into
-memory.
+For now, we have a script that loads some tables into memory.
 
 ```{r load_data, echo=TRUE, message=FALSE}
 source('load_data_script.R')
 ```
 
-## Claims Transactions Data
+By the end of the day, we will be able to produce all these tables from the
+claims transactions data.
 
-THe first thing to do with a dataset is inspect it: look at the first few rows,
+
+
+## Initial Data Checks
+
+The first thing to do with a dataset is inspect it: look at the first few rows,
 check the number of rows and columns, and check the data types.
 
-```{r inspect_claims_transactions, echo=TRUE}
-print(claims_transactions_tbl)
+We use two tables of data to learn this manipulation: a dataset of aggregated
+triangle data, and the claims transaction data.
 
-glimpse(claims_transactions_tbl)
+### Claims Triangle Data
+
+The triangle data is in 'long' form - the development time is its own variable
+rather than a column in the data. We will look at how to convert this to
+'wide' format in a little while.
+
+```{r inspect_claim_triangles, echo=TRUE}
+print(claim_triangles_tbl)
+
+glimpse(claim_triangles_tbl)
 ```
 
 The data types that have been loaded seem appropriate.
+
+
+### Claims Transaction Data
+
+The transaction data shows individual movements on each claim.
+
+```{r inspect_claim_transactions, echo=TRUE}
+print(claim_transactions_tbl)
+
+glimpse(claim_transactions_tbl)
+```
+
+Again, the data appears to have loaded fine.
 
 
 ## Basic Data Manipulation
@@ -68,7 +94,7 @@ In the `dplyr` lexicon, we `select()` columns and `filter()` rows. We start by
 subsetting only the claims for Ireland (IRL).
 
 ```{r filter_irl_rows, echo=TRUE}
-irl_data_tbl <- claims_transactions_tbl %>%
+irl_data_tbl <- claim_transactions_tbl %>%
     filter(country_code == 'IRL') %>%
     select(country_code, year, claim_id, transaction_date, claim_type, amount)
 
@@ -78,7 +104,7 @@ glimpse(irl_data_tbl)
 If we put a `-` symbol in front of column names, we exclude those instead.
 
 ```{r filter_irl_rows_removal, echo=TRUE}
-irl_data_tbl <- claims_transactions_tbl %>% 
+irl_data_tbl <- claim_transactions_tbl %>% 
     filter(country_code == 'IRL') %>%
     select(-incident_date, -report_date)
 
@@ -88,7 +114,7 @@ glimpse(irl_data_tbl)
 We can have multiple conditions at once in a `filter()` condition:
 
 ```{r filter_irl_2015_data, echo=TRUE}
-irl_2015_data_tbl <- claims_transactions_tbl %>% 
+irl_2015_data_tbl <- claim_transactions_tbl %>% 
     filter(country_code == 'IRL'
           ,year         == 2015
            ) %>%
@@ -98,7 +124,43 @@ glimpse(irl_2015_data_tbl)
 ```
 
 
-#### Exercises
+### Sorting Columns
+
+Suppose we want to look at the claims in order of the date of the incident
+date. We do this using `arrange()`:
+
+```{r print_data_incident_date, echo=TRUE}
+claim_snapshot_tbl %>% 
+    arrange(incident_date) %>%
+    print()
+```
+
+We could also show the rows by reporting date:
+
+```{r print_date_report_date, echo=TRUE}
+claim_snapshot_tbl %>% 
+    arrange(report_date) %>%
+    print()
+```
+
+
+### Creating Columns
+
+We create new columns in our dataset by using `mutate()`:
+
+```{r create_new_column, echo=TRUE}
+claim_transactions_tbl %>%
+    mutate(reporting_delay_days = as.numeric(report_date - incident_date)) %>%
+    print()
+```
+
+
+## Summarising Data
+
+We often want to perform operations on groups of data: for example, calculate
+average current claim amounts by year or by country.
+
+We do this using the `group_by()` and `summarise()` functions
 
 
 

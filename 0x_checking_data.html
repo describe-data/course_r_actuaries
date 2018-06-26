@@ -11,7 +11,7 @@
 
 <meta name="author" content="Mick Cooney mcooney@agrippadataconsulting.com" />
 
-<meta name="date" content="2018-06-19" />
+<meta name="date" content="2018-06-26" />
 
 <title>R for Actuaries - Part X</title>
 
@@ -125,17 +125,23 @@ $(document).ready(function () {
 <h1 class="title toc-ignore">R for Actuaries - Part X</h1>
 <h3 class="subtitle"><em>Checking and Exploring Data</em></h3>
 <h4 class="author"><em>Mick Cooney <a href="mailto:mcooney@agrippadataconsulting.com">mcooney@agrippadataconsulting.com</a></em></h4>
-<h4 class="date"><em>2018-06-19</em></h4>
+<h4 class="date"><em>2018-06-26</em></h4>
 
 </div>
 
 <div id="TOC">
 <ul>
 <li><a href="#checking-and-exploring-data"><span class="toc-section-number">1</span> Checking and Exploring Data</a><ul>
-<li><a href="#claims-transactions-data"><span class="toc-section-number">1.1</span> Claims Transactions Data</a></li>
+<li><a href="#initial-data-checks"><span class="toc-section-number">1.1</span> Initial Data Checks</a><ul>
+<li><a href="#claims-triangle-data"><span class="toc-section-number">1.1.1</span> Claims Triangle Data</a></li>
+<li><a href="#claims-transaction-data"><span class="toc-section-number">1.1.2</span> Claims Transaction Data</a></li>
+</ul></li>
 <li><a href="#basic-data-manipulation"><span class="toc-section-number">1.2</span> Basic Data Manipulation</a><ul>
 <li><a href="#subsetting-rows-and-columns"><span class="toc-section-number">1.2.1</span> Subsetting Rows and Columns</a></li>
+<li><a href="#sorting-columns"><span class="toc-section-number">1.2.2</span> Sorting Columns</a></li>
+<li><a href="#creating-columns"><span class="toc-section-number">1.2.3</span> Creating Columns</a></li>
 </ul></li>
+<li><a href="#summarising-data"><span class="toc-section-number">1.3</span> Summarising Data</a></li>
 </ul></li>
 </ul>
 </div>
@@ -145,13 +151,45 @@ $(document).ready(function () {
 <p>In this exercise we are going to build claims triangles from transactional claim data. The claims are from a fictional captive insurer for a large logistics company with operations all across Europe.</p>
 <p>The data has been provided to us in multiple files, with each file sorted according to country. The data is current as of date 30 June 2017.</p>
 <p>Reading data from a file is an important topic, but is not a good place to start learning: 80% of the time it is routine and boring, the other 20% of the time it is fiddly and frustrating! We will return to it later.</p>
-<p>For now, we have a script that loads the table <code>claims_transactions_tbl</code> into memory.</p>
+<p>For now, we have a script that loads the table <code>claim_transactions_tbl</code> into memory.</p>
 <pre class="r"><code>source('load_data_script.R')</code></pre>
-<div id="claims-transactions-data" class="section level2">
-<h2><span class="header-section-number">1.1</span> Claims Transactions Data</h2>
-<p>THe first thing to do with a dataset is inspect it: look at the first few rows, check the number of rows and columns, and check the data types.</p>
-<pre class="r"><code>print(claims_transactions_tbl)</code></pre>
-<pre><code>## # A tibble: 452,268 x 8
+<div id="initial-data-checks" class="section level2">
+<h2><span class="header-section-number">1.1</span> Initial Data Checks</h2>
+<p>The first thing to do with a dataset is inspect it: look at the first few rows, check the number of rows and columns, and check the data types.</p>
+<p>We use two tables of data to learn this manipulation: a dataset of aggregated triangle data, and the claims transaction data.</p>
+<div id="claims-triangle-data" class="section level3">
+<h3><span class="header-section-number">1.1.1</span> Claims Triangle Data</h3>
+<p>The triangle data is in ‘long’ form - the development time is its own variable rather than a column in the data. We will look at how to convert this to ‘wide’ format in a little while.</p>
+<pre class="r"><code>print(claim_triangles_tbl)</code></pre>
+<pre><code>## # A tibble: 4,441 x 5
+##    country_code claim_type claim_year dev_time total_cuml
+##    &lt;chr&gt;        &lt;chr&gt;           &lt;int&gt;    &lt;dbl&gt;      &lt;dbl&gt;
+##  1 AUT          BI               2000        0         0 
+##  2 AUT          BI               2000        1      9235.
+##  3 AUT          BI               2000        2    358445.
+##  4 AUT          BI               2000        3   1382147.
+##  5 AUT          BI               2000        4   4381700.
+##  6 AUT          BI               2000        5   5650439 
+##  7 AUT          BI               2000        6   6082797.
+##  8 AUT          BI               2000        7   6192461.
+##  9 AUT          BI               2000        8   6259059.
+## 10 AUT          BI               2000        9   6338874.
+## # ... with 4,431 more rows</code></pre>
+<pre class="r"><code>glimpse(claim_triangles_tbl)</code></pre>
+<pre><code>## Observations: 4,441
+## Variables: 5
+## $ country_code &lt;chr&gt; &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;...
+## $ claim_type   &lt;chr&gt; &quot;BI&quot;, &quot;BI&quot;, &quot;BI&quot;, &quot;BI&quot;, &quot;BI&quot;, &quot;BI&quot;, &quot;BI&quot;, &quot;BI&quot;, &quot;BI&quot;, ...
+## $ claim_year   &lt;int&gt; 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, ...
+## $ dev_time     &lt;dbl&gt; 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, ...
+## $ total_cuml   &lt;dbl&gt; 0.00, 9234.55, 358444.59, 1382147.20, 4381700.46, 5650...</code></pre>
+<p>The data types that have been loaded seem appropriate.</p>
+</div>
+<div id="claims-transaction-data" class="section level3">
+<h3><span class="header-section-number">1.1.2</span> Claims Transaction Data</h3>
+<p>The transaction data shows individual movements on each claim.</p>
+<pre class="r"><code>print(claim_transactions_tbl)</code></pre>
+<pre><code>## # A tibble: 452,268 x 10
 ##    country_code  year claim_id       incident_date report_date transaction_date
 ##    &lt;chr&gt;        &lt;int&gt; &lt;chr&gt;          &lt;date&gt;        &lt;date&gt;      &lt;date&gt;          
 ##  1 AUT           2000 AUT200001CL00~ 2000-01-03    2000-01-20  2001-10-06      
@@ -164,11 +202,11 @@ $(document).ready(function () {
 ##  8 AUT           2000 AUT200001CL00~ 2000-01-06    2000-01-15  2001-10-09      
 ##  9 AUT           2000 AUT200001CL00~ 2000-01-06    2000-01-15  2002-01-24      
 ## 10 AUT           2000 AUT200001CL00~ 2000-01-06    2000-01-15  2002-05-09      
-## # ... with 452,258 more rows, and 2 more variables: claim_type &lt;chr&gt;,
-## #   amount &lt;dbl&gt;</code></pre>
-<pre class="r"><code>glimpse(claims_transactions_tbl)</code></pre>
+## # ... with 452,258 more rows, and 4 more variables: claim_type &lt;chr&gt;,
+## #   amount &lt;dbl&gt;, claim_lifetime &lt;dbl&gt;, yearmonth &lt;chr&gt;</code></pre>
+<pre class="r"><code>glimpse(claim_transactions_tbl)</code></pre>
 <pre><code>## Observations: 452,268
-## Variables: 8
+## Variables: 10
 ## $ country_code     &lt;chr&gt; &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;...
 ## $ year             &lt;int&gt; 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 20...
 ## $ claim_id         &lt;chr&gt; &quot;AUT200001CL0001&quot;, &quot;AUT200001CL0001&quot;, &quot;AUT200001CL...
@@ -176,8 +214,11 @@ $(document).ready(function () {
 ## $ report_date      &lt;date&gt; 2000-01-20, 2000-01-20, 2000-01-13, 2000-01-13, 2...
 ## $ transaction_date &lt;date&gt; 2001-10-06, 2007-08-31, 2000-03-12, 2001-05-30, 2...
 ## $ claim_type       &lt;chr&gt; &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;P...
-## $ amount           &lt;dbl&gt; 501.87, 1195.22, 80.06, 406.39, 644.63, 386.06, 29...</code></pre>
-<p>The data types that have been loaded seem appropriate.</p>
+## $ amount           &lt;dbl&gt; 501.87, 1195.22, 80.06, 406.39, 644.63, 386.06, 29...
+## $ claim_lifetime   &lt;dbl&gt; 642, 2797, 67, 511, 1930, 418, 573, 642, 749, 854,...
+## $ yearmonth        &lt;chr&gt; &quot;200001&quot;, &quot;200001&quot;, &quot;200001&quot;, &quot;200001&quot;, &quot;200001&quot;, ...</code></pre>
+<p>Again, the data appears to have loaded fine.</p>
+</div>
 </div>
 <div id="basic-data-manipulation" class="section level2">
 <h2><span class="header-section-number">1.2</span> Basic Data Manipulation</h2>
@@ -185,7 +226,7 @@ $(document).ready(function () {
 <div id="subsetting-rows-and-columns" class="section level3">
 <h3><span class="header-section-number">1.2.1</span> Subsetting Rows and Columns</h3>
 <p>In the <code>dplyr</code> lexicon, we <code>select()</code> columns and <code>filter()</code> rows. We start by subsetting only the claims for Ireland (IRL).</p>
-<pre class="r"><code>irl_data_tbl &lt;- claims_transactions_tbl %&gt;%
+<pre class="r"><code>irl_data_tbl &lt;- claim_transactions_tbl %&gt;%
     filter(country_code == 'IRL') %&gt;%
     select(country_code, year, claim_id, transaction_date, claim_type, amount)
 
@@ -199,21 +240,23 @@ glimpse(irl_data_tbl)</code></pre>
 ## $ claim_type       &lt;chr&gt; &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;P...
 ## $ amount           &lt;dbl&gt; 313.91, 1598.53, 1459.29, 1556.08, 3734.53, 2624.5...</code></pre>
 <p>If we put a <code>-</code> symbol in front of column names, we exclude those instead.</p>
-<pre class="r"><code>irl_data_tbl &lt;- claims_transactions_tbl %&gt;% 
+<pre class="r"><code>irl_data_tbl &lt;- claim_transactions_tbl %&gt;% 
     filter(country_code == 'IRL') %&gt;%
     select(-incident_date, -report_date)
 
 glimpse(irl_data_tbl)</code></pre>
 <pre><code>## Observations: 6,276
-## Variables: 6
+## Variables: 8
 ## $ country_code     &lt;chr&gt; &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;...
 ## $ year             &lt;int&gt; 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 20...
 ## $ claim_id         &lt;chr&gt; &quot;IRL200001CL0002&quot;, &quot;IRL200001CL0002&quot;, &quot;IRL200001CL...
 ## $ transaction_date &lt;date&gt; 2000-05-30, 2000-11-16, 2000-11-30, 2001-05-23, 2...
 ## $ claim_type       &lt;chr&gt; &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;P...
-## $ amount           &lt;dbl&gt; 313.91, 1598.53, 1459.29, 1556.08, 3734.53, 2624.5...</code></pre>
+## $ amount           &lt;dbl&gt; 313.91, 1598.53, 1459.29, 1556.08, 3734.53, 2624.5...
+## $ claim_lifetime   &lt;dbl&gt; 143, 313, 327, 501, 599, 1016, 344, 1048, 1098, 14...
+## $ yearmonth        &lt;chr&gt; &quot;200001&quot;, &quot;200001&quot;, &quot;200001&quot;, &quot;200001&quot;, &quot;200001&quot;, ...</code></pre>
 <p>We can have multiple conditions at once in a <code>filter()</code> condition:</p>
-<pre class="r"><code>irl_2015_data_tbl &lt;- claims_transactions_tbl %&gt;% 
+<pre class="r"><code>irl_2015_data_tbl &lt;- claim_transactions_tbl %&gt;% 
     filter(country_code == 'IRL'
           ,year         == 2015
            ) %&gt;%
@@ -221,17 +264,85 @@ glimpse(irl_data_tbl)</code></pre>
 
 glimpse(irl_2015_data_tbl)</code></pre>
 <pre><code>## Observations: 215
-## Variables: 6
+## Variables: 8
 ## $ country_code     &lt;chr&gt; &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;...
 ## $ year             &lt;int&gt; 2015, 2015, 2015, 2015, 2015, 2015, 2015, 2015, 20...
 ## $ claim_id         &lt;chr&gt; &quot;IRL201501CL0001&quot;, &quot;IRL201501CL0001&quot;, &quot;IRL201501CL...
 ## $ transaction_date &lt;date&gt; 2016-01-17, 2016-09-12, 2017-05-24, 2015-04-19, 2...
 ## $ claim_type       &lt;chr&gt; &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;P...
-## $ amount           &lt;dbl&gt; 496.79, 1275.67, 1459.92, 1166.86, 2897.45, 2512.3...</code></pre>
-<div id="exercises" class="section level4">
-<h4><span class="header-section-number">1.2.1.1</span> Exercises</h4>
+## $ amount           &lt;dbl&gt; 496.79, 1275.67, 1459.92, 1166.86, 2897.45, 2512.3...
+## $ claim_lifetime   &lt;dbl&gt; 380, 619, 866, 98, 520, 737, 14, 151, 572, 666, 68...
+## $ yearmonth        &lt;chr&gt; &quot;201501&quot;, &quot;201501&quot;, &quot;201501&quot;, &quot;201501&quot;, &quot;201501&quot;, ...</code></pre>
+</div>
+<div id="sorting-columns" class="section level3">
+<h3><span class="header-section-number">1.2.2</span> Sorting Columns</h3>
+<p>Suppose we want to look at the claims in order of the date of the incident date. We do this using <code>arrange()</code>:</p>
+<pre class="r"><code>claim_snapshot_tbl %&gt;% 
+    arrange(incident_date) %&gt;%
+    print()</code></pre>
+<pre><code>## # A tibble: 128,433 x 10
+##    country_code  year claim_id       incident_date report_date transaction_date
+##    &lt;chr&gt;        &lt;int&gt; &lt;chr&gt;          &lt;date&gt;        &lt;date&gt;      &lt;date&gt;          
+##  1 DEU           2000 DEU200001CL00~ 2000-01-02    2000-01-07  2004-12-29      
+##  2 DEU           2000 DEU200001CL00~ 2000-01-02    2000-01-11  2004-07-11      
+##  3 DEU           2000 DEU200001CL00~ 2000-01-02    2000-01-16  2003-09-13      
+##  4 DEU           2000 DEU200001CL00~ 2000-01-02    2000-01-11  2006-11-14      
+##  5 FRA           2000 FRA200001CL00~ 2000-01-02    2000-04-14  2005-06-15      
+##  6 FRA           2000 FRA200001CL00~ 2000-01-02    2000-01-23  2008-12-20      
+##  7 GBR           2000 GBR200001CL00~ 2000-01-02    2000-01-09  2003-12-31      
+##  8 IRL           2000 IRL200001CL00~ 2000-01-02    2000-01-05  2004-02-21      
+##  9 ITA           2000 ITA200001CL00~ 2000-01-02    2000-01-10  2005-06-05      
+## 10 NLD           2000 NLD200001CL00~ 2000-01-02    2000-01-21  2008-11-30      
+## # ... with 128,423 more rows, and 4 more variables: claim_type &lt;chr&gt;,
+## #   amount &lt;dbl&gt;, claim_lifetime &lt;dbl&gt;, yearmonth &lt;chr&gt;</code></pre>
+<p>We could also show the rows by reporting date:</p>
+<pre class="r"><code>claim_snapshot_tbl %&gt;% 
+    arrange(report_date) %&gt;%
+    print()</code></pre>
+<pre><code>## # A tibble: 128,433 x 10
+##    country_code  year claim_id       incident_date report_date transaction_date
+##    &lt;chr&gt;        &lt;int&gt; &lt;chr&gt;          &lt;date&gt;        &lt;date&gt;      &lt;date&gt;          
+##  1 BEL           2000 BEL200001CL00~ 2000-01-03    2000-01-04  2004-02-18      
+##  2 ESP           2000 ESP200001CL00~ 2000-01-04    2000-01-05  2003-05-23      
+##  3 GBR           2000 GBR200001CL00~ 2000-01-03    2000-01-05  2005-01-17      
+##  4 IRL           2000 IRL200001CL00~ 2000-01-02    2000-01-05  2004-02-21      
+##  5 NLD           2000 NLD200001CL00~ 2000-01-02    2000-01-05  2005-07-20      
+##  6 DEU           2000 DEU200001CL00~ 2000-01-03    2000-01-06  2006-03-07      
+##  7 ESP           2000 ESP200001CL00~ 2000-01-03    2000-01-06  2003-10-29      
+##  8 GBR           2000 GBR200001CL00~ 2000-01-04    2000-01-06  2003-11-20      
+##  9 GBR           2000 GBR200001CL00~ 2000-01-05    2000-01-06  2007-04-10      
+## 10 GBR           2000 GBR200001CL00~ 2000-01-05    2000-01-06  2003-06-16      
+## # ... with 128,423 more rows, and 4 more variables: claim_type &lt;chr&gt;,
+## #   amount &lt;dbl&gt;, claim_lifetime &lt;dbl&gt;, yearmonth &lt;chr&gt;</code></pre>
+</div>
+<div id="creating-columns" class="section level3">
+<h3><span class="header-section-number">1.2.3</span> Creating Columns</h3>
+<p>We create new columns in our dataset by using <code>mutate()</code>:</p>
+<pre class="r"><code>claim_transactions_tbl %&gt;%
+    mutate(reporting_delay_days = as.numeric(report_date - incident_date)) %&gt;%
+    print()</code></pre>
+<pre><code>## # A tibble: 452,268 x 11
+##    country_code  year claim_id       incident_date report_date transaction_date
+##    &lt;chr&gt;        &lt;int&gt; &lt;chr&gt;          &lt;date&gt;        &lt;date&gt;      &lt;date&gt;          
+##  1 AUT           2000 AUT200001CL00~ 2000-01-03    2000-01-20  2001-10-06      
+##  2 AUT           2000 AUT200001CL00~ 2000-01-03    2000-01-20  2007-08-31      
+##  3 AUT           2000 AUT200001CL00~ 2000-01-05    2000-01-13  2000-03-12      
+##  4 AUT           2000 AUT200001CL00~ 2000-01-05    2000-01-13  2001-05-30      
+##  5 AUT           2000 AUT200001CL00~ 2000-01-05    2000-01-13  2005-04-18      
+##  6 AUT           2000 AUT200001CL00~ 2000-01-06    2000-01-15  2001-02-27      
+##  7 AUT           2000 AUT200001CL00~ 2000-01-06    2000-01-15  2001-08-01      
+##  8 AUT           2000 AUT200001CL00~ 2000-01-06    2000-01-15  2001-10-09      
+##  9 AUT           2000 AUT200001CL00~ 2000-01-06    2000-01-15  2002-01-24      
+## 10 AUT           2000 AUT200001CL00~ 2000-01-06    2000-01-15  2002-05-09      
+## # ... with 452,258 more rows, and 5 more variables: claim_type &lt;chr&gt;,
+## #   amount &lt;dbl&gt;, claim_lifetime &lt;dbl&gt;, yearmonth &lt;chr&gt;,
+## #   reporting_delay_days &lt;dbl&gt;</code></pre>
 </div>
 </div>
+<div id="summarising-data" class="section level2">
+<h2><span class="header-section-number">1.3</span> Summarising Data</h2>
+<p>We often want to perform operations on groups of data: for example, calculate average current claim amounts by year or by country.</p>
+<p>We do this using the <code>group_by()</code> and <code>summarise()</code> functions</p>
 </div>
 </div>
 

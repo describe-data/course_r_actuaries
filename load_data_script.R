@@ -6,7 +6,7 @@ library(scales)
 # Load all claims transactions data
 data_files <- list.files('data', full.names = TRUE, pattern = '\\.csv')
 
-claims_transactions_tbl <- data_frame(file_src = data_files) %>%
+claim_transactions_tbl <- data_frame(file_src = data_files) %>%
     mutate(data = map(file_src, read_csv, col_types = cols())) %>%
     bind_rows() %>%
     unnest() %>%
@@ -16,7 +16,7 @@ claims_transactions_tbl <- data_frame(file_src = data_files) %>%
     )
 
 
-claims_snapshot_tbl <- claims_transactions_tbl %>%
+claim_snapshot_tbl <- claim_transactions_tbl %>%
     group_by(country_code, claim_id, claim_type) %>%
     top_n(1, wt = transaction_date) %>%
     ungroup()
