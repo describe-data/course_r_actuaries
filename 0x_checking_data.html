@@ -11,7 +11,7 @@
 
 <meta name="author" content="Mick Cooney mcooney@agrippadataconsulting.com" />
 
-<meta name="date" content="2018-06-26" />
+<meta name="date" content="2018-06-27" />
 
 <title>R for Actuaries - Part X</title>
 
@@ -125,7 +125,7 @@ $(document).ready(function () {
 <h1 class="title toc-ignore">R for Actuaries - Part X</h1>
 <h3 class="subtitle"><em>Checking and Exploring Data</em></h3>
 <h4 class="author"><em>Mick Cooney <a href="mailto:mcooney@agrippadataconsulting.com">mcooney@agrippadataconsulting.com</a></em></h4>
-<h4 class="date"><em>2018-06-26</em></h4>
+<h4 class="date"><em>2018-06-27</em></h4>
 
 </div>
 
@@ -141,7 +141,12 @@ $(document).ready(function () {
 <li><a href="#sorting-columns"><span class="toc-section-number">1.2.2</span> Sorting Columns</a></li>
 <li><a href="#creating-columns"><span class="toc-section-number">1.2.3</span> Creating Columns</a></li>
 </ul></li>
-<li><a href="#summarising-data"><span class="toc-section-number">1.3</span> Summarising Data</a></li>
+<li><a href="#summarising-data"><span class="toc-section-number">1.3</span> Summarising Data</a><ul>
+<li><a href="#summarising-snapshot-values"><span class="toc-section-number">1.3.1</span> Summarising Snapshot Values</a></li>
+<li><a href="#summarising-by-groups"><span class="toc-section-number">1.3.2</span> Summarising by Groups</a></li>
+<li><a href="#group-sub-selecting"><span class="toc-section-number">1.3.3</span> Group Sub-selecting</a></li>
+</ul></li>
+<li><a href="#reshaping-data"><span class="toc-section-number">1.4</span> Reshaping Data</a></li>
 </ul></li>
 </ul>
 </div>
@@ -151,8 +156,9 @@ $(document).ready(function () {
 <p>In this exercise we are going to build claims triangles from transactional claim data. The claims are from a fictional captive insurer for a large logistics company with operations all across Europe.</p>
 <p>The data has been provided to us in multiple files, with each file sorted according to country. The data is current as of date 30 June 2017.</p>
 <p>Reading data from a file is an important topic, but is not a good place to start learning: 80% of the time it is routine and boring, the other 20% of the time it is fiddly and frustrating! We will return to it later.</p>
-<p>For now, we have a script that loads the table <code>claim_transactions_tbl</code> into memory.</p>
+<p>For now, we have a script that loads some tables into memory.</p>
 <pre class="r"><code>source('load_data_script.R')</code></pre>
+<p>By the end of the day, we will be able to produce all these tables from the claims transactions data.</p>
 <div id="initial-data-checks" class="section level2">
 <h2><span class="header-section-number">1.1</span> Initial Data Checks</h2>
 <p>The first thing to do with a dataset is inspect it: look at the first few rows, check the number of rows and columns, and check the data types.</p>
@@ -342,7 +348,161 @@ glimpse(irl_2015_data_tbl)</code></pre>
 <div id="summarising-data" class="section level2">
 <h2><span class="header-section-number">1.3</span> Summarising Data</h2>
 <p>We often want to perform operations on groups of data: for example, calculate average current claim amounts by year or by country.</p>
-<p>We do this using the <code>group_by()</code> and <code>summarise()</code> functions</p>
+<div id="summarising-snapshot-values" class="section level3">
+<h3><span class="header-section-number">1.3.1</span> Summarising Snapshot Values</h3>
+<p>We start by calculating some summary values of the snapshot data:</p>
+<pre class="r"><code>claim_snapshot_tbl &lt;- claim_snapshot_tbl %&gt;%
+    mutate(reporting_delay_days = as.numeric(report_date - incident_date))
+
+claim_snapshot_tbl %&gt;%
+    summarise(mean_delay   = mean(reporting_delay_days)
+             ,sd_delay     = sd(reporting_delay_days)
+             ,median_delay = median(reporting_delay_days)
+              )</code></pre>
+<pre><code>## # A tibble: 1 x 3
+##   mean_delay sd_delay median_delay
+##        &lt;dbl&gt;    &lt;dbl&gt;        &lt;dbl&gt;
+## 1       16.8     23.3           10</code></pre>
+</div>
+<div id="summarising-by-groups" class="section level3">
+<h3><span class="header-section-number">1.3.2</span> Summarising by Groups</h3>
+<p>We often want to calculate summary values across subgroups of our data: for example, reporting delays by country, to investigate patterns in the data.</p>
+<p>We achieve this by using <code>group_by()</code> to indicate the grouping variables. We then <code>ungroup()</code> the table afterwards.</p>
+<p>Suppose we want to see how reporting delays change by country, we want to group by <code>country_code</code></p>
+<pre class="r"><code>claim_snapshot_tbl %&gt;%
+    group_by(country_code) %&gt;%
+    summarise(mean_delay   = mean(reporting_delay_days)
+             ,sd_delay     = sd(reporting_delay_days)
+             ,median_delay = median(reporting_delay_days)
+              ) %&gt;%
+    ungroup()</code></pre>
+<pre><code>## # A tibble: 13 x 4
+##    country_code mean_delay sd_delay median_delay
+##    &lt;chr&gt;             &lt;dbl&gt;    &lt;dbl&gt;        &lt;dbl&gt;
+##  1 AUT                13.5     16.0            9
+##  2 BEL                14.5     20.4            8
+##  3 DEU                14.8     19.0            9
+##  4 DNK                19.0     24.7           11
+##  5 ESP                16.1     21.1            9
+##  6 FRA                18.1     26.4           11
+##  7 GBR                20.5     27.9           12
+##  8 IRL                20.4     36.8           10
+##  9 ITA                16.4     22.6            9
+## 10 NLD                14.6     20.6            8
+## 11 POL                17.6     23.1           11
+## 12 PRT                17.8     24.2           11
+## 13 SWE                13.7     19.0            8</code></pre>
+<p>We can group our data by more than one column too - suppose we want to group by both year and country:</p>
+<pre class="r"><code>claim_snapshot_tbl %&gt;%
+    group_by(country_code, year) %&gt;%
+    summarise(mean_delay   = mean(reporting_delay_days)
+             ,sd_delay     = sd(reporting_delay_days)
+             ,median_delay = median(reporting_delay_days)
+              ) %&gt;%
+    ungroup()</code></pre>
+<pre><code>## # A tibble: 234 x 5
+##    country_code  year mean_delay sd_delay median_delay
+##    &lt;chr&gt;        &lt;int&gt;      &lt;dbl&gt;    &lt;dbl&gt;        &lt;dbl&gt;
+##  1 AUT           2000       14.8     21.6            9
+##  2 AUT           2001       17.0     21.3           11
+##  3 AUT           2002       17.0     18.9           12
+##  4 AUT           2003       14.3     18.8            8
+##  5 AUT           2004       13.1     13.8            8
+##  6 AUT           2005       13.6     12.6           11
+##  7 AUT           2006       13.4     17.0            8
+##  8 AUT           2007       15.8     17.6            9
+##  9 AUT           2008       11.8     12.1            9
+## 10 AUT           2009       14.3     18.0            8
+## # ... with 224 more rows</code></pre>
+</div>
+<div id="group-sub-selecting" class="section level3">
+<h3><span class="header-section-number">1.3.3</span> Group Sub-selecting</h3>
+<p>A common data manipulation task is finding the largest or smallest value within each subset.</p>
+<p>In our dataset, suppose we want to find the largest current claim amount for each country, year and claim type. This is already possible with the tools we have discussed, but <code>dplyr</code> provides a shortcut function <code>top_n()</code></p>
+<pre class="r"><code>claim_snapshot_tbl %&gt;%
+    group_by(country_code, year, claim_type) %&gt;%
+    top_n(1, wt = amount) %&gt;%
+    print()</code></pre>
+<pre><code>## # A tibble: 463 x 11
+## # Groups:   country_code, year, claim_type [463]
+##    country_code  year claim_id       incident_date report_date transaction_date
+##    &lt;chr&gt;        &lt;int&gt; &lt;chr&gt;          &lt;date&gt;        &lt;date&gt;      &lt;date&gt;          
+##  1 AUT           2000 AUT200011CL00~ 2000-11-25    2000-12-09  2004-01-12      
+##  2 AUT           2001 AUT200112CL00~ 2001-12-15    2001-12-22  2006-05-13      
+##  3 AUT           2002 AUT200201CL00~ 2002-01-22    2002-02-26  2006-03-20      
+##  4 AUT           2003 AUT200301CL00~ 2003-01-10    2003-01-14  2006-10-07      
+##  5 AUT           2004 AUT200403CL00~ 2004-03-05    2004-03-06  2011-03-27      
+##  6 AUT           2005 AUT200507CL00~ 2005-07-27    2005-08-20  2008-12-29      
+##  7 AUT           2006 AUT200605CL00~ 2006-05-04    2006-05-12  2010-01-20      
+##  8 AUT           2007 AUT200707CL00~ 2007-07-22    2007-07-26  2011-09-15      
+##  9 AUT           2008 AUT200807CL00~ 2008-07-03    2008-07-12  2014-03-27      
+## 10 AUT           2009 AUT200901CL00~ 2009-01-20    2009-01-29  2013-07-28      
+## # ... with 453 more rows, and 5 more variables: claim_type &lt;chr&gt;, amount &lt;dbl&gt;,
+## #   claim_lifetime &lt;dbl&gt;, yearmonth &lt;chr&gt;, reporting_delay_days &lt;dbl&gt;</code></pre>
+</div>
+</div>
+<div id="reshaping-data" class="section level2">
+<h2><span class="header-section-number">1.4</span> Reshaping Data</h2>
+<p>A major part of data manipulation is reshaping the data - transforming a table from ‘wide’ to ‘long’ format for example.</p>
+<p>The package <code>tidyr</code> deals with this type of data manipulation via the verbs <code>spread()</code> which turns long tables into wide ones, and <code>gather()</code> which does the reverse.</p>
+<p>This is easiest explained by an example.</p>
+<pre class="r"><code>claim_triangles_tbl %&gt;%
+    filter(country_code == 'AUT', claim_type == 'PD') %&gt;%
+    print()</code></pre>
+<pre><code>## # A tibble: 171 x 5
+##    country_code claim_type claim_year dev_time total_cuml
+##    &lt;chr&gt;        &lt;chr&gt;           &lt;int&gt;    &lt;dbl&gt;      &lt;dbl&gt;
+##  1 AUT          PD               2000        0         0 
+##  2 AUT          PD               2000        1   2157945.
+##  3 AUT          PD               2000        2   7761535.
+##  4 AUT          PD               2000        3  16470883.
+##  5 AUT          PD               2000        4  24296395.
+##  6 AUT          PD               2000        5  29844011.
+##  7 AUT          PD               2000        6  32097137.
+##  8 AUT          PD               2000        7  33282200.
+##  9 AUT          PD               2000        8  33649761.
+## 10 AUT          PD               2000        9  33866269.
+## # ... with 161 more rows</code></pre>
+<pre class="r"><code>aut_pd_2010_triangle_tbl &lt;- claim_triangles_tbl %&gt;%
+    filter(country_code == 'AUT', claim_type == 'PD', claim_year &gt;= 2010) %&gt;%
+    mutate(total_cuml = total_cuml / 1e6) %&gt;%
+    spread(dev_time, total_cuml)
+
+aut_pd_2010_triangle_tbl %&gt;%
+    select(-country_code, -claim_type) %&gt;%
+    print()</code></pre>
+<pre><code>## # A tibble: 8 x 9
+##   claim_year   `0`    `1`   `2`   `3`   `4`   `5`   `6`   `7`
+##        &lt;int&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+## 1       2010     0  2.56   9.90  19.1  28.5  31.9  35.7  37.1
+## 2       2011     0  4.89  22.0   41.4  62.6  77.4  86.0  NA  
+## 3       2012     0  2.78  15.0   28.6  43.6  51.0  NA    NA  
+## 4       2013     0  0.996  4.96  11.0  16.5  NA    NA    NA  
+## 5       2014     0  2.06   8.29  18.5  NA    NA    NA    NA  
+## 6       2015     0  1.83   6.89  NA    NA    NA    NA    NA  
+## 7       2016     0  1.13  NA     NA    NA    NA    NA    NA  
+## 8       2017     0 NA     NA     NA    NA    NA    NA    NA</code></pre>
+<p>If we want to go from wide to long, we use <code>gather()</code>. We pass in the labels for both the ‘key’ and ‘value’ columns if we wish to rename those.</p>
+<pre class="r"><code>claim_gathered_tbl &lt;- aut_pd_2010_triangle_tbl %&gt;%
+    gather(dev_time, total_cuml, -country_code, -claim_type, -claim_year, convert = TRUE)
+
+claim_gathered_tbl %&gt;%
+    arrange(claim_year, dev_time) %&gt;%
+    print()</code></pre>
+<pre><code>## # A tibble: 64 x 5
+##    country_code claim_type claim_year dev_time total_cuml
+##    &lt;chr&gt;        &lt;chr&gt;           &lt;int&gt;    &lt;int&gt;      &lt;dbl&gt;
+##  1 AUT          PD               2010        0       0   
+##  2 AUT          PD               2010        1       2.56
+##  3 AUT          PD               2010        2       9.90
+##  4 AUT          PD               2010        3      19.1 
+##  5 AUT          PD               2010        4      28.5 
+##  6 AUT          PD               2010        5      31.9 
+##  7 AUT          PD               2010        6      35.7 
+##  8 AUT          PD               2010        7      37.1 
+##  9 AUT          PD               2011        0       0   
+## 10 AUT          PD               2011        1       4.89
+## # ... with 54 more rows</code></pre>
 </div>
 </div>
 
