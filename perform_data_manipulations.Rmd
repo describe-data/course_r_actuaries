@@ -1,13 +1,18 @@
 ---
-title: "R for Actuaries Data Manipulations"
-author: "Mick Cooney <mickcooney@gmail.com>"
+title: "Real-world R for Actuaries"
+subtitle: "Data Manipulation to Build Claims Triangles"
+author: "Mick Cooney <mcooney@agrippadataconsulting.com>"
 date: "`r Sys.Date()`"
 output:
   html_document:
-    toc: true
-    number_sections: true
     fig_caption: yes
-    theme: cerulean
+    theme: spacelab
+    highlight: pygments
+    number_sections: TRUE
+    toc: TRUE
+    toc_depth: 3
+    toc_float:
+      smooth_scroll: FALSE
   pdf_document: default
 ---
 
@@ -35,7 +40,7 @@ knitr::opts_chunk$set(tidy  = FALSE
 
 set.seed(42)
 
-download_data_dir <- 'C:/Work/vbox_share/shared_data/generated_data'
+download_data_dir <- 'C:/Work/vbox_shared/shared_data/generated_data'
 ```
 
 # Load Claim Transactions Data
@@ -128,7 +133,7 @@ calc_incr_tbl <- calc_incr_tbl %>%
 incr_values_tbl <- claim_transactions_tbl %>%
     dplyr::select(country_code, claim_type, claim_year = year, claim_id) %>%
     distinct() %>%
-    mutate(data = list(data_frame(dev_time = 0:20))) %>%
+    mutate(data = list(tibble(dev_time = 0:20))) %>%
     unnest() %>%
     left_join(calc_incr_tbl, by = c('claim_id', 'claim_type', 'claim_year', 'dev_time')) %>%
     replace_na(list(increment = 0))

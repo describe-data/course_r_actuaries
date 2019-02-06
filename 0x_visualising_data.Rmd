@@ -1,14 +1,18 @@
 ---
-title: "R for Actuaries - Part X"
+title: "Real-world R for Actuaries"
 subtitle: "Visualising Data"
 author: "Mick Cooney <mcooney@agrippadataconsulting.com>"
 date: "`r Sys.Date()`"
 output:
   html_document:
-    toc: true
-    number_sections: true
     fig_caption: yes
-    theme: cerulean
+    theme: spacelab
+    highlight: pygments
+    number_sections: TRUE
+    toc: TRUE
+    toc_depth: 3
+    toc_float:
+      smooth_scroll: FALSE
   pdf_document: default
 ---
 
