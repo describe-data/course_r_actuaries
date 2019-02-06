@@ -1,0 +1,220 @@
+---
+title: "Real-world R for Actuaries"
+subtitle: "Loading Data"
+author: "Mick Cooney <mcooney@agrippadataconsulting.com>"
+date: "2019-02-18"
+output:
+  html_document:
+    fig_caption: yes
+    theme: spacelab
+    highlight: pygments
+    number_sections: TRUE
+    toc: TRUE
+    toc_depth: 3
+    toc_float:
+      smooth_scroll: FALSE
+  pdf_document: default
+---
+
+```{r set_options, echo=FALSE}
+options(width = 80L
+       ,warn  = 1)
+
+knitr::opts_chunk$set(tidy  = FALSE
+                     ,cache = FALSE
+                     ,fig.height =  7
+                     ,fig.width  = 11)
+```
+
+
+# Loading and Checking Data
+
+In this exercise we are going to build claims triangles from transactional claim
+data. The claims are from a fictional captive insurer for a large logistics
+company with operations all across Europe.
+
+The data has been provided to us in multiple files, with each file sorted
+according to country. The data is current as of date 30 June 2017.
+
+## Loading Data
+
+Looking into the `data` directory we see thirteen files, of the form
+`XXX_claims_data.csv` where the XXX is the three-letter country code. Thus, UK
+data is in the file `GBR_claims_data.csv` and so on.
+
+### Reading Single Data Files
+
+To get started, we are first going to load in the IRL data and look at it.
+
+```{r load_irl_data, echo=TRUE}
+library(tidyverse)
+
+irl_data_tbl <- read_csv('data/IRL_claims_data.csv')
+
+print(irl_data_tbl)
+```
+
+It is important to look at your data after you load it!
+
+`glimpse()` is a useful tool here to check a table
+
+```{r glimpse_irl_data, echo=TRUE}
+glimpse(irl_data_tbl)
+```
+
+
+### Reading Multiple Data Files
+
+A common use-case for this work is when the data is spread around multiple
+files.
+
+The brute force way to solve this problem is to read each file separately and
+join the data together.
+
+
+```{r load_multiple_files, echo=TRUE}
+irl_data_tbl <- read_csv('data/IRL_claims_data.csv')
+gbr_data_tbl <- read_csv('data/GBR_claims_data.csv')
+deu_data_tbl <- read_csv('data/DEU_claims_data.csv')
+
+
+multiple_data_tbl <- list(irl_data_tbl
+                         ,gbr_data_tbl
+                         ,deu_data_tbl
+                          ) %>%
+    bind_rows()
+
+
+glimpse(multiple_data_tbl)
+print(multiple_data_tbl)
+```
+
+
+### Automate Multiple Files
+
+For a large number of files, the manual coding approach becomes a huge pain,
+as well as being very error-prone.
+
+A much better approach is to automatically load all the files in a directory
+automatically, and stack them up at the end.
+
+First, we can use `list.files()` to get a list of all the files in a given
+directory, finding all files ending with '.csv'
+
+```{r check_multiple_data, echo=TRUE}
+data_files <- list.files('data', full.names = TRUE, pattern = '\\.csv')
+
+print(data_files)
+```
+
+
+Now that we have a list of the files, we want to read in each one as a table
+and then stack them all on top of each other at the end.
+
+The code below does this using tools provided in the tidyverse, but a full
+explanation of what this code is doing is beyond the scope of the course.
+
+That said, it is such a common use case in the real-world it would be a shame
+to not mention it at all, so rather than going down the rabbit hole of nested
+data frames and functional programming, we instead gloss over the finer details
+and provide the code as a recipe.
+
+
+
+```{r load_files_programmatically, echo=TRUE}
+claim_transactions_tbl <- tibble(file_src = data_files) %>%
+    ## Read in each file as a table
+    mutate(data = map(file_src, read_csv, col_types = cols())) %>%
+  
+    ## Expand out each individual table
+    unnest() %>%
+  
+    ## Remove the filename as we do not need it
+    dplyr::select(-file_src) %>%
+  
+    ## Calculate some derived values
+    mutate(claim_lifetime = as.numeric(transaction_date - incident_date)
+          ,yearmonth      = format(incident_date, '%Y%m')
+    )
+
+glimpse(claim_transactions_tbl)
+print(claim_transactions_tbl)
+```
+
+
+
+## Setting Column Types
+
+The various `read_*` functions do a reasonable job of guessing data types for
+columns based on their contents, but you often want or need direct control.
+
+A common issue is ID values that are read in as numeric columns but are more
+logically treated as strings.
+
+We could read the data using defaults and then convert it to the desired type
+after with `mutate()` but this can cause problems: information is often lost in
+this process, causing problems later on.
+
+Another good example of this are phone numbers. Area codes often start with
+leading zeros and get lost.
+
+For this reason, the tidyverse and `readr` in particular provide us a useful
+mechanism for setting column types that is both convenient to use and easy to
+remember.
+
+It is easiest to illustrate with an example:
+
+```{r show_coltypes_functionality, echo=TRUE}
+irl_data_tbl <- read_csv('data/IRL_claims_data.csv')
+
+glimpse(irl_data_tbl)
+
+
+irl_data_coltypes_tbl <- read_csv('data/IRL_claims_data.csv'
+                                 ,col_types = cols(year = col_integer())
+                                  )
+
+glimpse(irl_data_coltypes_tbl)
+```
+
+`readr` provides for all the major data types you would want such as integers,
+doubles, strings, logicals and so on.
+
+See `?cols` for more details.
+
+Another convenient usage of the `readr` functions is that it provides you with
+a column-specification object if you do not include the `col_types` parameter.
+This can be a useful starting point for modifying the specification as you can
+copy-and-paste it.
+
+
+## Reading Excel Files
+
+While one common way to read data from Excel is to export the relevant
+worksheets as a CSV and go from there, it is often more convenient to read from
+an Excel file directly.
+
+R has a few ways of interfacing with Excel, but the best package for this is
+`readxl`, which is built on the libxls - an open source library.
+
+```{r read_excel_file, echo=TRUE}
+library(readxl)
+
+data_xls_tbl <- read_excel('data/Claim Data.xlsx')
+
+glimpse(data_xls_tbl)
+print(data_xls_tbl)
+```
+
+
+Unfortunately, while useful, `readxl` does not provide the convenient
+`col_type` interface we are familiar with: the column specification works
+differently and needs a data type for every column in the spreadsheet.
+
+While this is sometimes enough, one workaround is to force every column be
+treated as a string and immediately write it to disk as CSV. You can then use
+your standard `read_csv()` as before with all the convenience you had before.
+
+```{r read_write_excel_file, echo=TRUE}
+read_excel('data/Claim Data.xlsx') %>% write_csv(path = 'data/temp_data.csv')
+```

@@ -1,0 +1,337 @@
+---
+title: "Real-world R for Actuaries"
+subtitle: "Visualising Data"
+author: "Mick Cooney <mcooney@agrippadataconsulting.com>"
+date: "2019-02-18"
+output:
+  html_document:
+    fig_caption: yes
+    theme: spacelab
+    highlight: pygments
+    number_sections: TRUE
+    toc: TRUE
+    toc_depth: 3
+    toc_float:
+      smooth_scroll: FALSE
+  pdf_document: default
+---
+
+```{r set_options, echo=FALSE}
+options(width = 80L
+       ,warn  = 1)
+
+knitr::opts_chunk$set(tidy  = FALSE
+                     ,cache = FALSE
+                     ,fig.height =  7
+                     ,fig.width  = 11)
+```
+
+```{r load_data, echo=FALSE, message=FALSE}
+source('load_data_script.R')
+```
+
+
+# Visualising Data
+
+Data visualisations is the single most powerful tool for data exploration and
+analysis - one that is often over-looked and under-appreciated.
+
+## Our First Visualisations
+
+Our first visualisation is going to be a simple one: we plot the most updated
+value of each claim from Ireland over time. The dataset `claims_snapshot_tbl`
+is summarised version of our main dataset that contains this data.
+
+### Point Plots
+
+Focusing on Irish claims from 2010, We look at the lifetime of the claim
+against the size of the amount, colouring the points by the claim type (`PD`
+or `BI`).
+
+```{r plot_first_pointplot, echo=TRUE}
+plot_tbl <- claim_triangles_tbl %>%
+    filter(country_code == 'IRL'
+          ,claim_year   == 2010
+           )
+
+ggplot(plot_tbl) +
+    geom_point(aes(x = dev_time, y = total_cuml, colour = claim_type))
+```
+
+
+### Lineplots
+
+Line plots are created in a similar fashion. In this plot, we show how
+aggregate claims develop over time.
+
+```{r plot_first_lineplot, echo=TRUE}
+plot_tbl <- claim_triangles_tbl %>%
+    filter(country_code == 'IRL'
+          ,claim_year   == 2010
+           )
+
+ggplot(plot_tbl) +
+    geom_line(aes(x = dev_time, y = total_cuml, colour = claim_type))
+```
+
+
+### Histograms
+
+Histograms are a common way to understand how a value is distributed.
+
+To start, we inspect the distribution of BI claim sizes for Ireland in 2010.
+
+```{r plot_histogram, echo=TRUE}
+plot_tbl <- claim_snapshot_tbl %>%
+    filter(country_code == 'IRL'
+          ,year         == 2010
+          ,claim_type   == 'BI'
+           )
+
+ggplot(plot_tbl) +
+    geom_histogram(aes(x = amount))
+```
+
+By default, the histogram is built from 30 bins, but we can control this
+directly if we wish.
+
+```{r plot_histogram_50, echo=TRUE}
+ggplot(plot_tbl) +
+    geom_histogram(aes(x = amount), bins = 50)
+```
+
+
+### Boxplots
+
+`ggplot2` provides a uniform interface for all its plot types. To illustrate
+this, we look at the most recent BI claim values for Ireland in 2010 and create
+a boxplot.
+
+```{r plot_first_boxplot_bi, echo=TRUE}
+plot_tbl <- claim_snapshot_tbl %>%
+    filter(country_code == 'IRL'
+          ,year         == 2010
+          ,claim_type   == 'BI'
+           )
+
+ggplot(plot_tbl) +
+    geom_boxplot(aes(x = as.character(yearmonth), y = amount))
+```
+
+
+We can also plot the two claim types beside each other at the same time.
+
+```{r plot_first_boxplot_pd, echo=TRUE}
+plot_tbl <- claim_snapshot_tbl %>%
+    filter(country_code == 'IRL'
+          ,year         == 2010
+           )
+
+ggplot(plot_tbl) +
+    geom_boxplot(aes(x = as.character(yearmonth), y = amount, colour = claim_type))
+```
+
+
+
+
+### Exercises
+
+  * Create a point plot for UK claims (country code 'GBR') for the year 2012.
+  * Change the original plot to change both shape and colour depending on type
+    of claim.
+  * Change the BI boxplot to show 'PD' claims.
+  * Create the combined boxplot for BI claims in 2010 showing both 'IRL' and
+    'GBR' claims with different colours.
+  * Create a point plot for IRL claims for all years since 2010.
+  * Improve the visibility of the data by using the `alpha` parameter.
+
+
+## Improving Visualisations
+
+We now build on our basic understanding of plotting to look for ways to
+improve our visualisations.
+
+### Facets
+
+Sometimes visualisations are improved by the use of *facets* - we have segment
+the data into groups and plot those beside each other.
+
+To start, we look at the development of aggregate claims for 2010 for the UK,
+Germany, France and Italy.
+
+```{r plot_facet_first, echo=TRUE}
+plot_tbl <- claim_triangles_tbl %>%
+    filter(country_code %in% c('GBR','DEU','FRA','ITA')
+          ,claim_year   == 2010
+           )
+
+ggplot(plot_tbl) +
+    geom_line(aes(x = dev_time, y = total_cuml, colour = claim_type)) +
+    facet_wrap(~ country_code)
+```
+
+By default with facetting we have a common scale, and this can obscure things,
+so we now allow each facet to have its own y-axis:
+
+```{r plot_facet_freescale, echo=TRUE}
+ggplot(plot_tbl) +
+    geom_line(aes(x = dev_time, y = total_cuml, colour = claim_type)) +
+    facet_wrap(~ country_code, scales = 'free_y')
+```
+
+It is also possible to facet in two dimensions, say be country and claim type
+
+```{r plot_facet_grid, echo=TRUE}
+ggplot(plot_tbl) +
+    geom_line(aes(x = dev_time, y = total_cuml)) +
+    facet_grid(claim_type ~ country_code, scales = 'free_y')
+```
+
+
+### Multiple Geoms
+
+We can add multiple 'geoms' one one graph, such as adding the points as well
+as the lines.
+
+Going back to the original plot, here is how we plot the development of the
+aggregate claims for Ireland in 2010 with both points and lines.
+
+Note the subtle different in the 'colour' parameter: the lines choose their
+colour by the type of claim, but for the points it is assigned to be black.
+
+
+```{r plot_combined_geoms, echo=TRUE}
+plot_tbl <- claim_triangles_tbl %>%
+    filter(country_code == 'IRL'
+          ,claim_year   == 2010
+           )
+
+ggplot(plot_tbl) +
+    geom_line (aes(x = dev_time, y = total_cuml, colour = claim_type)) +
+    geom_point(aes(x = dev_time, y = total_cuml), colour = 'black')
+```
+
+In a plot like these, we can set the default `aes()` values inside the
+`ggplot()` call:
+
+
+```{r plot_default_aes, echo=TRUE}
+ggplot(plot_tbl, aes(x = dev_time, y = total_cuml)) +
+    geom_line (aes(colour = claim_type)) +
+    geom_point(colour = 'black')
+```
+
+
+### Labels and Titles
+
+A good visualisation is one that requires little in the way of additional
+explanation - it tells its own story.
+
+To do this we often want to improve a plot by labelling axes, adding titles,
+changing colour schemes and so on.
+
+`xlab()`, `ylab()` and `ggtitle()` add a label to the x-axis, a label to the
+y-axis and a title to the plot respectively.
+
+To show this, let's look at lineplot of the aggregate development again:
+
+```{r plot_line_with_labels, echo=TRUE}
+plot_tbl <- claim_triangles_tbl %>%
+    filter(country_code == 'IRL'
+          ,claim_year   == 2010
+           )
+
+ggplot(plot_tbl) +
+    geom_line (aes(x = dev_time, y = total_cuml, colour = claim_type)) +
+    xlab('Development Time (years)') +
+    ylab('Aggregate Claim Amount') +
+    ggtitle('Plot of Ireland 2010 Claim Development Amounts over Time')
+```
+
+
+### Themes
+
+`ggplot2` is hugely customisable - almost everything about a plot can be
+edited. A simple way to exploit this is through the use of 'themes' - preset
+configurations to help you customise your plot.
+
+A number of themes come with `ggplot2` and there are packages that add many
+more.
+
+To show this feature, we use our existing plot with a number of different
+themes.
+
+```{r plot_lineplot_themes, echo=TRUE}
+plot_tbl <- claim_triangles_tbl %>%
+    filter(country_code == 'IRL'
+          ,claim_year   == 2010
+           )
+
+theme_plot <- ggplot(plot_tbl) +
+    geom_line (aes(x = dev_time, y = total_cuml, colour = claim_type)) +
+    xlab('Development Time (years)') +
+    ylab('Aggregate Claim Amount') +
+    ggtitle('Plot of Ireland 2010 Claim Development Amounts over Time')
+
+
+theme_plot + theme_classic()
+
+theme_plot + theme_minimal()
+
+theme_plot + theme_grey()
+```
+
+
+### Ranges and Scales
+
+One final concern is the range of values displayed on the x and y axis - we
+may wish to control what that range is, and how it is displayed.
+
+We start by relabelling the current amounts by using commas - we use the
+`commas()` function from the `scales` package.
+
+```{r plot_lines_yaxis, echo=TRUE}
+plot_tbl <- claim_triangles_tbl %>%
+    filter(country_code == 'IRL'
+          ,claim_year   == 2010
+           )
+
+ggplot(plot_tbl) +
+    geom_line (aes(x = dev_time, y = total_cuml, colour = claim_type)) +
+    scale_y_continuous(labels = comma, limits = c(0, 20e6)) +
+    xlab('Development Time (years)') +
+    ylab('Aggregate Claim Amount') +
+    ggtitle('Plot of Ireland 2010 Claim Development Amounts over Time')
+```
+
+
+We can use scales to transform variables (like use of a log-scale)
+
+```{r plot_lines_yaxis_scale_log10, echo=TRUE}
+plot_tbl <- claim_triangles_tbl %>%
+    filter(country_code == 'IRL'
+          ,claim_year   == 2010
+           )
+
+ggplot(plot_tbl) +
+    geom_line (aes(x = dev_time, y = total_cuml, colour = claim_type)) +
+    scale_y_log10(labels = comma) +
+    xlab('Development Time (years)') +
+    ylab('Aggregate Claim Amount') +
+    ggtitle('Plot of Ireland 2010 Claim Development Amounts over Time')
+```
+
+
+We may want to ensure that certain values are included in the range of values.
+
+```{r plot_lines_scale_ylimit, echo=TRUE}
+ggplot(plot_tbl) +
+    geom_line (aes(x = dev_time, y = total_cuml, colour = claim_type)) +
+    scale_y_continuous(labels = comma, limits = c(0, 20e6)) +
+    xlab('Development Time (years)') +
+    ylab('Aggregate Claim Amount') +
+    ggtitle('Plot of Ireland 2010 Claim Development Amounts over Time')
+```
+
+
+

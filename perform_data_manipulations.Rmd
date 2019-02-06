@@ -2,7 +2,7 @@
 title: "Real-world R for Actuaries"
 subtitle: "Data Manipulation to Build Claims Triangles"
 author: "Mick Cooney <mcooney@agrippadataconsulting.com>"
-date: "`r Sys.Date()`"
+date: "2019-02-18"
 output:
   html_document:
     fig_caption: yes
