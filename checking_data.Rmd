@@ -275,17 +275,97 @@ claim_gathered_tbl %>%
 ```
 
 
+## Joining Data
+
+A common data manipulation task is combining two separate tables. This process
+can be called *merging* or *joining* data, and `dplyr` provides us with a
+few different ways of doing the join.
+
+Joins combine rows of tables together, producing a new table with a combination
+of columns and rows from both tables.
+
+To perform a join, we need one or more *key* columns to join on: rows from
+each columns are joined by having identical values in each table.
+
+As always, the process is best explained by example.
+
+We have constructed a table called `claim_final_tbl` which contains the most
+recent amount for the claim.
+
+We then join this table to our transaction data, allowing us to transform the
+claim development into a proportion rather than a currency amount.
+
+```{r setup_join_data, echo=TRUE}
+pd_trans_tbl <- claim_transactions_tbl %>%
+    filter(claim_type == 'PD')
+
+pd_final_gbr_tbl <- claim_final_tbl %>%
+    filter(claim_type == 'PD', country_code == 'GBR') %>%
+    dplyr::select(claim_id, ultimate)
+
+pd_trans_tbl     %>% glimpse()
+pd_final_gbr_tbl %>% glimpse()
+```
+
+Now that we have our data, we join the data using `inner_join` which only keeps
+matching rows in both tables.
 
 
+```{r show_inner_join, echo=TRUE}
+claims_join_tbl <- pd_trans_tbl %>%
+    inner_join(pd_final_gbr_tbl, by = 'claim_id')
+
+claims_join_tbl %>% glimpse()
+```
 
 
+Left-joins keep all rows in the first table (hence 'left') regardless of
+matching and the matched rows from the joining table. Empty values are set to
+`NA`.
 
 
+```{r show_left_join, echo=TRUE}
+claims_join_tbl <- pd_trans_tbl %>%
+    left_join(pd_final_gbr_tbl, by = 'claim_id')
+
+claims_join_tbl %>% glimpse()
+```
+
+Right joins are the mirror of left-joins, and a full join is like a left and
+right join combined.
 
 
+Finally, the *filtering* joins: `semi_join()` and `anti_join()`. These only
+return rows and columns from the first table, depending on whether or not there
+is a matching key in the second table.
 
 
+### Outer Joins
 
+We sometimes wish to build tables containing all possible combinations of
+multiple variables.
 
+As an example, suppose we wish to find all claims that have only a single
+claim type.
 
+We do this by building all combinations of `claim_id` and `claim_type` and then
+finding the combinations that do not exist in our claim table.
 
+```{r find_single_type_claims, echo=TRUE}
+claim_id_all   <- claim_transactions_tbl %>% pull(claim_id)   %>% unique()
+claim_type_all <- claim_transactions_tbl %>% pull(claim_type) %>% unique()
+
+all_combined_tbl <- crossing(
+    claim_id   = claim_id_all
+   ,claim_type = claim_type_all
+)
+
+all_combined_tbl %>% glimpse()
+
+single_type_tbl <- all_combined_tbl %>%
+    anti_join(claim_transactions_tbl, by = c('claim_id', 'claim_type')) %>%
+    dplyr::select(claim_id) %>%
+    inner_join(claim_transactions_tbl, by = 'claim_id')
+
+single_type_tbl %>% glimpse()
+```

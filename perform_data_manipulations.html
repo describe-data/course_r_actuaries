@@ -1765,17 +1765,205 @@ div.tocify {
 <div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb6-1" data-line-number="1">long_triangle_tbl <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">write_feather</span>(<span class="st">&#39;data/yearly_triangles.feather&#39;</span>)</a></code></pre></div>
 </div>
 </div>
+<div id="build-triangles-with-incremental-data" class="section level1">
+<h1><span class="header-section-number">2</span> Build Triangles with Incremental Data</h1>
+<p>The most straightforward method to build the triangles is likely via incremental values for the claim movements.</p>
+<p>The data we have shows the current value for the claim - we need to switch this data to incrementals first, and then work from that.</p>
+<p>Once we have the incremental values, we then calculate the development time.</p>
+<p>Rather than our previous approach to calculating the development period for the increment we instead use the number of days since the incident and divide by 365.25. As we are assuming no development at time 0, we add 1 to each development year.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" data-line-number="1">claim_incrementals_tbl &lt;-<span class="st"> </span>claim_transactions_tbl <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb7-2" data-line-number="2"><span class="st">    </span><span class="kw">group_by</span>(country_code, year, claim_id, claim_type) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb7-3" data-line-number="3"><span class="st">    </span><span class="kw">mutate</span>(<span class="dt">incremental =</span> <span class="kw">diff</span>(<span class="kw">c</span>(<span class="dv">0</span>, amount))) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb7-4" data-line-number="4"><span class="st">    </span><span class="kw">ungroup</span>() <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb7-5" data-line-number="5"><span class="st">    </span><span class="kw">mutate</span>(<span class="dt">dev_days =</span> <span class="kw">as.numeric</span>(transaction_date <span class="op">-</span><span class="st"> </span>incident_date)</a>
+<a class="sourceLine" id="cb7-6" data-line-number="6">          ,<span class="dt">dev_year =</span> <span class="kw">floor</span>(dev_days <span class="op">/</span><span class="st"> </span><span class="fl">365.25</span>) <span class="op">+</span><span class="st"> </span><span class="dv">1</span></a>
+<a class="sourceLine" id="cb7-7" data-line-number="7">           )</a>
+<a class="sourceLine" id="cb7-8" data-line-number="8"></a>
+<a class="sourceLine" id="cb7-9" data-line-number="9">claim_incrementals_tbl <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">glimpse</span>()</a></code></pre></div>
+<pre><code>## Observations: 452,268
+## Variables: 11
+## $ country_code     &lt;chr&gt; &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;...
+## $ year             &lt;dbl&gt; 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 20...
+## $ claim_id         &lt;chr&gt; &quot;AUT200001CL0001&quot;, &quot;AUT200001CL0001&quot;, &quot;AUT200001CL...
+## $ incident_date    &lt;date&gt; 2000-01-03, 2000-01-03, 2000-01-05, 2000-01-05, 2...
+## $ report_date      &lt;date&gt; 2000-01-20, 2000-01-20, 2000-01-13, 2000-01-13, 2...
+## $ transaction_date &lt;date&gt; 2001-10-06, 2007-08-31, 2000-03-12, 2001-05-30, 2...
+## $ claim_type       &lt;chr&gt; &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;P...
+## $ amount           &lt;dbl&gt; 501.87, 1195.22, 80.06, 406.39, 644.63, 386.06, 29...
+## $ incremental      &lt;dbl&gt; 501.87, 693.35, 80.06, 326.33, 238.24, 386.06, -94...
+## $ dev_days         &lt;dbl&gt; 642, 2797, 67, 511, 1930, 418, 573, 642, 749, 854,...
+## $ dev_year         &lt;dbl&gt; 2, 8, 1, 2, 6, 2, 2, 2, 3, 3, 3, 5, 3, 4, 5, 6, 1,...</code></pre>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb9-1" data-line-number="1">claim_incrementals_tbl <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">print</span>()</a></code></pre></div>
+<pre><code>## # A tibble: 452,268 x 11
+##    country_code  year claim_id incident_date report_date transaction_date
+##    &lt;chr&gt;        &lt;dbl&gt; &lt;chr&gt;    &lt;date&gt;        &lt;date&gt;      &lt;date&gt;          
+##  1 AUT           2000 AUT2000~ 2000-01-03    2000-01-20  2001-10-06      
+##  2 AUT           2000 AUT2000~ 2000-01-03    2000-01-20  2007-08-31      
+##  3 AUT           2000 AUT2000~ 2000-01-05    2000-01-13  2000-03-12      
+##  4 AUT           2000 AUT2000~ 2000-01-05    2000-01-13  2001-05-30      
+##  5 AUT           2000 AUT2000~ 2000-01-05    2000-01-13  2005-04-18      
+##  6 AUT           2000 AUT2000~ 2000-01-06    2000-01-15  2001-02-27      
+##  7 AUT           2000 AUT2000~ 2000-01-06    2000-01-15  2001-08-01      
+##  8 AUT           2000 AUT2000~ 2000-01-06    2000-01-15  2001-10-09      
+##  9 AUT           2000 AUT2000~ 2000-01-06    2000-01-15  2002-01-24      
+## 10 AUT           2000 AUT2000~ 2000-01-06    2000-01-15  2002-05-09      
+## # ... with 452,258 more rows, and 5 more variables: claim_type &lt;chr&gt;,
+## #   amount &lt;dbl&gt;, incremental &lt;dbl&gt;, dev_days &lt;dbl&gt;, dev_year &lt;dbl&gt;</code></pre>
+<p>We want to ensure that every claim gets an entry for each development period.</p>
+<p>To do this we fill out the each development period for each year, and then join this data on.</p>
+<p>To create a cross join of each ‘account’ year by each development year we use the function <code>crossing()</code> to</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb11-1" data-line-number="1">acc_year &lt;-<span class="st"> </span>claim_incrementals_tbl <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">pull</span>(year)     <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">unique</span>()</a>
+<a class="sourceLine" id="cb11-2" data-line-number="2">dev_year &lt;-<span class="st"> </span>claim_incrementals_tbl <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">pull</span>(dev_year) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">unique</span>()</a>
+<a class="sourceLine" id="cb11-3" data-line-number="3"></a>
+<a class="sourceLine" id="cb11-4" data-line-number="4">all_tbl &lt;-<span class="st"> </span>claim_incrementals_tbl <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb11-5" data-line-number="5"><span class="st">    </span><span class="kw">select</span>(country_code, claim_type, year) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb11-6" data-line-number="6"><span class="st">    </span><span class="kw">distinct</span>()</a>
+<a class="sourceLine" id="cb11-7" data-line-number="7"></a>
+<a class="sourceLine" id="cb11-8" data-line-number="8">full_incr_tbl &lt;-<span class="st"> </span><span class="kw">crossing</span>(<span class="dt">year     =</span> acc_year</a>
+<a class="sourceLine" id="cb11-9" data-line-number="9">                    ,<span class="dt">dev_year =</span> <span class="kw">c</span>(<span class="dv">0</span>, dev_year)</a>
+<a class="sourceLine" id="cb11-10" data-line-number="10">                     ) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb11-11" data-line-number="11"><span class="st">    </span><span class="kw">left_join</span>(all_tbl, <span class="dt">by =</span> <span class="st">&#39;year&#39;</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb12-1" data-line-number="1">data_dev_tbl &lt;-<span class="st"> </span>claim_incrementals_tbl <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb12-2" data-line-number="2"><span class="st">    </span><span class="kw">group_by</span>(country_code, year, claim_type, dev_year) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb12-3" data-line-number="3"><span class="st">    </span><span class="kw">summarise</span>(<span class="dt">total_incr =</span> <span class="kw">sum</span>(incremental))</a>
+<a class="sourceLine" id="cb12-4" data-line-number="4"></a>
+<a class="sourceLine" id="cb12-5" data-line-number="5"></a>
+<a class="sourceLine" id="cb12-6" data-line-number="6">data_dev_tbl <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">glimpse</span>()</a></code></pre></div>
+<pre><code>## Observations: 3,362
+## Variables: 5
+## Groups: country_code, year, claim_type [463]
+## $ country_code &lt;chr&gt; &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;...
+## $ year         &lt;dbl&gt; 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, ...
+## $ claim_type   &lt;chr&gt; &quot;BI&quot;, &quot;BI&quot;, &quot;BI&quot;, &quot;BI&quot;, &quot;BI&quot;, &quot;BI&quot;, &quot;BI&quot;, &quot;BI&quot;, &quot;BI&quot;, ...
+## $ dev_year     &lt;dbl&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8,...
+## $ total_incr   &lt;dbl&gt; 2880.04, 60326.82, 59312.32, 6811.17, 10027.10, 134.31...</code></pre>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb14-1" data-line-number="1">data_dev_tbl <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">print</span>()</a></code></pre></div>
+<pre><code>## # A tibble: 3,362 x 5
+## # Groups:   country_code, year, claim_type [463]
+##    country_code  year claim_type dev_year total_incr
+##    &lt;chr&gt;        &lt;dbl&gt; &lt;chr&gt;         &lt;dbl&gt;      &lt;dbl&gt;
+##  1 AUT           2000 BI                1     2880. 
+##  2 AUT           2000 BI                2    60327. 
+##  3 AUT           2000 BI                3    59312. 
+##  4 AUT           2000 BI                4     6811. 
+##  5 AUT           2000 BI                5    10027. 
+##  6 AUT           2000 BI                6      134. 
+##  7 AUT           2000 BI                7       69.0
+##  8 AUT           2000 BI                8      641. 
+##  9 AUT           2000 BI                9     1376. 
+## 10 AUT           2000 BI               10     4778. 
+## # ... with 3,352 more rows</code></pre>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb16-1" data-line-number="1">claim_dev_vals_tbl &lt;-<span class="st"> </span>full_incr_tbl <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb16-2" data-line-number="2"><span class="st">    </span><span class="kw">left_join</span>(data_dev_tbl, <span class="dt">by =</span> <span class="kw">c</span>(<span class="st">&#39;country_code&#39;</span>, <span class="st">&#39;year&#39;</span>, <span class="st">&#39;claim_type&#39;</span>, <span class="st">&#39;dev_year&#39;</span>)) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb16-3" data-line-number="3"><span class="st">    </span><span class="kw">replace_na</span>(<span class="kw">list</span>(<span class="dt">total_incr =</span> <span class="dv">0</span>)) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb16-4" data-line-number="4"><span class="st">    </span><span class="kw">select</span>(country_code, claim_type, year, dev_year, total_incr) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb16-5" data-line-number="5"><span class="st">    </span><span class="kw">arrange</span>(country_code, claim_type, year, dev_year)</a>
+<a class="sourceLine" id="cb16-6" data-line-number="6"></a>
+<a class="sourceLine" id="cb16-7" data-line-number="7">claim_dev_vals_tbl <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">glimpse</span>()</a></code></pre></div>
+<pre><code>## Observations: 5,093
+## Variables: 5
+## $ country_code &lt;chr&gt; &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;...
+## $ claim_type   &lt;chr&gt; &quot;BI&quot;, &quot;BI&quot;, &quot;BI&quot;, &quot;BI&quot;, &quot;BI&quot;, &quot;BI&quot;, &quot;BI&quot;, &quot;BI&quot;, &quot;BI&quot;, ...
+## $ year         &lt;dbl&gt; 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, ...
+## $ dev_year     &lt;dbl&gt; 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 0, 1, 2, 3, 4, 5, 6,...
+## $ total_incr   &lt;dbl&gt; 0.00, 2880.04, 60326.82, 59312.32, 6811.17, 10027.10, ...</code></pre>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb18-1" data-line-number="1">claim_dev_vals_tbl <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">print</span>()</a></code></pre></div>
+<pre><code>## # A tibble: 5,093 x 5
+##    country_code claim_type  year dev_year total_incr
+##    &lt;chr&gt;        &lt;chr&gt;      &lt;dbl&gt;    &lt;dbl&gt;      &lt;dbl&gt;
+##  1 AUT          BI          2000        0        0  
+##  2 AUT          BI          2000        1     2880. 
+##  3 AUT          BI          2000        2    60327. 
+##  4 AUT          BI          2000        3    59312. 
+##  5 AUT          BI          2000        4     6811. 
+##  6 AUT          BI          2000        5    10027. 
+##  7 AUT          BI          2000        6      134. 
+##  8 AUT          BI          2000        7       69.0
+##  9 AUT          BI          2000        8      641. 
+## 10 AUT          BI          2000        9     1376. 
+## # ... with 5,083 more rows</code></pre>
+<p>We are now in a position to calculate the cumulative amounts for each year.</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb20-1" data-line-number="1">claim_dev_long_tbl &lt;-<span class="st"> </span>claim_dev_vals_tbl <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb20-2" data-line-number="2"><span class="st">    </span><span class="kw">group_by</span>(country_code, claim_type, year) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb20-3" data-line-number="3"><span class="st">    </span><span class="kw">arrange</span>(year) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb20-4" data-line-number="4"><span class="st">    </span><span class="kw">mutate</span>(<span class="dt">dev_amount =</span> <span class="kw">cumsum</span>(total_incr)) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb20-5" data-line-number="5"><span class="st">    </span><span class="kw">ungroup</span>() <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb20-6" data-line-number="6"><span class="st">    </span><span class="kw">arrange</span>(country_code, claim_type, year, dev_year)</a>
+<a class="sourceLine" id="cb20-7" data-line-number="7">  </a>
+<a class="sourceLine" id="cb20-8" data-line-number="8">claim_dev_long_tbl <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">glimpse</span>()</a></code></pre></div>
+<pre><code>## Observations: 5,093
+## Variables: 6
+## $ country_code &lt;chr&gt; &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;...
+## $ claim_type   &lt;chr&gt; &quot;BI&quot;, &quot;BI&quot;, &quot;BI&quot;, &quot;BI&quot;, &quot;BI&quot;, &quot;BI&quot;, &quot;BI&quot;, &quot;BI&quot;, &quot;BI&quot;, ...
+## $ year         &lt;dbl&gt; 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, ...
+## $ dev_year     &lt;dbl&gt; 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 0, 1, 2, 3, 4, 5, 6,...
+## $ total_incr   &lt;dbl&gt; 0.00, 2880.04, 60326.82, 59312.32, 6811.17, 10027.10, ...
+## $ dev_amount   &lt;dbl&gt; 0.00, 2880.04, 63206.86, 122519.18, 129330.35, 139357....</code></pre>
+<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb22-1" data-line-number="1">claim_dev_long_tbl <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">print</span>()</a></code></pre></div>
+<pre><code>## # A tibble: 5,093 x 6
+##    country_code claim_type  year dev_year total_incr dev_amount
+##    &lt;chr&gt;        &lt;chr&gt;      &lt;dbl&gt;    &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;
+##  1 AUT          BI          2000        0        0           0 
+##  2 AUT          BI          2000        1     2880.       2880.
+##  3 AUT          BI          2000        2    60327.      63207.
+##  4 AUT          BI          2000        3    59312.     122519.
+##  5 AUT          BI          2000        4     6811.     129330.
+##  6 AUT          BI          2000        5    10027.     139357.
+##  7 AUT          BI          2000        6      134.     139492.
+##  8 AUT          BI          2000        7       69.0    139561.
+##  9 AUT          BI          2000        8      641.     140202.
+## 10 AUT          BI          2000        9     1376.     141578.
+## # ... with 5,083 more rows</code></pre>
+<p>We spread this table to ‘wide’ format:</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb24-1" data-line-number="1">claim_dev_wide_tbl &lt;-<span class="st"> </span>claim_dev_long_tbl <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb24-2" data-line-number="2"><span class="st">    </span><span class="kw">select</span>(<span class="op">-</span>total_incr) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb24-3" data-line-number="3"><span class="st">    </span><span class="kw">spread</span>(dev_year, dev_amount)</a>
+<a class="sourceLine" id="cb24-4" data-line-number="4"></a>
+<a class="sourceLine" id="cb24-5" data-line-number="5">claim_dev_wide_tbl <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">glimpse</span>()</a></code></pre></div>
+<pre><code>## Observations: 463
+## Variables: 14
+## $ country_code &lt;chr&gt; &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;...
+## $ claim_type   &lt;chr&gt; &quot;BI&quot;, &quot;BI&quot;, &quot;BI&quot;, &quot;BI&quot;, &quot;BI&quot;, &quot;BI&quot;, &quot;BI&quot;, &quot;BI&quot;, &quot;BI&quot;, ...
+## $ year         &lt;dbl&gt; 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, ...
+## $ `0`          &lt;dbl&gt; 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...
+## $ `1`          &lt;dbl&gt; 2880.04, 34201.85, 1972.39, 9353.41, 17217.62, 7813.71...
+## $ `2`          &lt;dbl&gt; 63206.86, 53631.39, 118727.13, 53948.12, 52503.87, 485...
+## $ `3`          &lt;dbl&gt; 122519.18, 132224.10, 128342.47, 77550.21, 86360.97, 8...
+## $ `4`          &lt;dbl&gt; 129330.35, 164794.71, 131496.39, 119592.78, 100740.21,...
+## $ `5`          &lt;dbl&gt; 139357.45, 185709.37, 149759.02, 138790.28, 150032.47,...
+## $ `6`          &lt;dbl&gt; 139491.76, 186382.06, 149232.24, 133026.83, 156007.40,...
+## $ `7`          &lt;dbl&gt; 139560.76, 185430.34, 151320.01, 132902.17, 156286.09,...
+## $ `8`          &lt;dbl&gt; 140201.83, 185373.53, 159142.41, 133219.85, 155114.79,...
+## $ `9`          &lt;dbl&gt; 141578.06, 185373.53, 159142.41, 132103.10, 160147.62,...
+## $ `10`         &lt;dbl&gt; 146355.63, 185373.46, 158577.28, 132059.80, 160147.65,...</code></pre>
+<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb26-1" data-line-number="1">claim_dev_wide_tbl <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">print</span>()</a></code></pre></div>
+<pre><code>## # A tibble: 463 x 14
+##    country_code claim_type  year   `0`    `1`    `2`    `3`    `4`    `5`    `6`
+##    &lt;chr&gt;        &lt;chr&gt;      &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;
+##  1 AUT          BI          2000     0  2880. 6.32e4 1.23e5 1.29e5 1.39e5 1.39e5
+##  2 AUT          BI          2001     0 34202. 5.36e4 1.32e5 1.65e5 1.86e5 1.86e5
+##  3 AUT          BI          2002     0  1972. 1.19e5 1.28e5 1.31e5 1.50e5 1.49e5
+##  4 AUT          BI          2003     0  9353. 5.39e4 7.76e4 1.20e5 1.39e5 1.33e5
+##  5 AUT          BI          2004     0 17218. 5.25e4 8.64e4 1.01e5 1.50e5 1.56e5
+##  6 AUT          BI          2005     0  7814. 4.85e4 8.36e4 1.12e5 1.15e5 1.16e5
+##  7 AUT          BI          2006     0  4704. 4.46e4 6.42e4 9.01e4 9.23e4 9.38e4
+##  8 AUT          BI          2007     0  4961. 3.93e4 7.69e4 8.27e4 9.10e4 9.38e4
+##  9 AUT          BI          2008     0  7085. 3.81e4 8.96e4 1.37e5 1.52e5 1.59e5
+## 10 AUT          BI          2009     0  4892. 5.25e4 6.88e4 1.06e5 1.23e5 1.25e5
+## # ... with 453 more rows, and 4 more variables: `7` &lt;dbl&gt;, `8` &lt;dbl&gt;,
+## #   `9` &lt;dbl&gt;, `10` &lt;dbl&gt;</code></pre>
+</div>
 <div id="split-claims-data" class="section level1">
-<h1><span class="header-section-number">2</span> Split Claims Data</h1>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" data-line-number="1">countries &lt;-<span class="st"> </span>claim_transactions_tbl <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">count</span>(country_code) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">pull</span>(country_code)</a>
-<a class="sourceLine" id="cb7-2" data-line-number="2"></a>
-<a class="sourceLine" id="cb7-3" data-line-number="3"><span class="cf">for</span>(country <span class="cf">in</span> countries) {</a>
-<a class="sourceLine" id="cb7-4" data-line-number="4">    output_file &lt;-<span class="st"> </span><span class="kw">paste0</span>(<span class="st">&#39;data/&#39;</span>, country, <span class="st">&#39;_claims_data.csv&#39;</span>)</a>
-<a class="sourceLine" id="cb7-5" data-line-number="5">    </a>
-<a class="sourceLine" id="cb7-6" data-line-number="6">    claim_transactions_tbl <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb7-7" data-line-number="7"><span class="st">        </span><span class="kw">filter</span>(country_code <span class="op">==</span><span class="st"> </span>country) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb7-8" data-line-number="8"><span class="st">        </span><span class="kw">write_csv</span>(<span class="dt">path =</span> output_file)</a>
-<a class="sourceLine" id="cb7-9" data-line-number="9">}</a></code></pre></div>
+<h1><span class="header-section-number">3</span> Split Claims Data</h1>
+<div class="sourceCode" id="cb28"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb28-1" data-line-number="1">countries &lt;-<span class="st"> </span>claim_transactions_tbl <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">count</span>(country_code) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">pull</span>(country_code)</a>
+<a class="sourceLine" id="cb28-2" data-line-number="2"></a>
+<a class="sourceLine" id="cb28-3" data-line-number="3"><span class="cf">for</span>(country <span class="cf">in</span> countries) {</a>
+<a class="sourceLine" id="cb28-4" data-line-number="4">    output_file &lt;-<span class="st"> </span><span class="kw">paste0</span>(<span class="st">&#39;data/&#39;</span>, country, <span class="st">&#39;_claims_data.csv&#39;</span>)</a>
+<a class="sourceLine" id="cb28-5" data-line-number="5">    </a>
+<a class="sourceLine" id="cb28-6" data-line-number="6">    claim_transactions_tbl <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb28-7" data-line-number="7"><span class="st">        </span><span class="kw">filter</span>(country_code <span class="op">==</span><span class="st"> </span>country) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb28-8" data-line-number="8"><span class="st">        </span><span class="kw">write_csv</span>(<span class="dt">path =</span> output_file)</a>
+<a class="sourceLine" id="cb28-9" data-line-number="9">}</a></code></pre></div>
 </div>
 
 

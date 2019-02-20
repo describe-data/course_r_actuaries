@@ -186,6 +186,106 @@ long_triangle_tbl %>% write_feather('data/yearly_triangles.feather')
 ```
 
 
+# Build Triangles with Incremental Data
+
+The most straightforward method to build the triangles is likely via
+incremental values for the claim movements.
+
+The data we have shows the current value for the claim - we need to switch
+this data to incrementals first, and then work from that.
+
+Once we have the incremental values, we then calculate the development time.
+
+Rather than our previous approach to calculating the development period for the
+increment we instead use the number of days since the incident and divide by
+365.25. As we are assuming no development at time 0, we add 1 to each
+development year.
+
+```{r build_triangle_incrementals, echo=TRUE}
+claim_incrementals_tbl <- claim_transactions_tbl %>%
+    group_by(country_code, year, claim_id, claim_type) %>%
+    mutate(incremental = diff(c(0, amount))) %>%
+    ungroup() %>%
+    mutate(dev_days = as.numeric(transaction_date - incident_date)
+          ,dev_year = floor(dev_days / 365.25) + 1
+           )
+
+claim_incrementals_tbl %>% glimpse()
+claim_incrementals_tbl %>% print()
+```
+
+We want to ensure that every claim gets an entry for each development period.
+
+To do this we fill out the each development period for each year, and then join
+this data on.
+
+To create a cross join of each 'account' year by each development year we use
+the function `crossing()` to 
+
+```{r fill_out_dev_periods, echo=TRUE}
+acc_year <- claim_incrementals_tbl %>% pull(year)     %>% unique()
+dev_year <- claim_incrementals_tbl %>% pull(dev_year) %>% unique()
+
+all_tbl <- claim_incrementals_tbl %>%
+    select(country_code, claim_type, year) %>%
+    distinct()
+
+full_incr_tbl <- crossing(year     = acc_year
+                    ,dev_year = c(0, dev_year)
+                     ) %>%
+    left_join(all_tbl, by = 'year')
+```
+
+
+```{r calculate_date_development_periods, echo=TRUE}
+data_dev_tbl <- claim_incrementals_tbl %>%
+    group_by(country_code, year, claim_type, dev_year) %>%
+    summarise(total_incr = sum(incremental))
+
+
+data_dev_tbl %>% glimpse()
+data_dev_tbl %>% print()
+```
+
+
+```{r calculate_all_dev_increments, echo=TRUE}
+claim_dev_vals_tbl <- full_incr_tbl %>%
+    left_join(data_dev_tbl, by = c('country_code', 'year', 'claim_type', 'dev_year')) %>%
+    replace_na(list(total_incr = 0)) %>%
+    select(country_code, claim_type, year, dev_year, total_incr) %>%
+    arrange(country_code, claim_type, year, dev_year)
+
+claim_dev_vals_tbl %>% glimpse()
+claim_dev_vals_tbl %>% print()
+```
+
+
+We are now in a position to calculate the cumulative amounts for each year.
+
+```{r calculate_devtable_long, echo=TRUE}
+claim_dev_long_tbl <- claim_dev_vals_tbl %>%
+    group_by(country_code, claim_type, year) %>%
+    arrange(year) %>%
+    mutate(dev_amount = cumsum(total_incr)) %>%
+    ungroup() %>%
+    arrange(country_code, claim_type, year, dev_year)
+  
+claim_dev_long_tbl %>% glimpse()
+claim_dev_long_tbl %>% print()
+```
+
+We spread this table to 'wide' format:
+
+```{r spread_devtable_wide, echo=TRUE}
+claim_dev_wide_tbl <- claim_dev_long_tbl %>%
+    select(-total_incr) %>%
+    spread(dev_year, dev_amount)
+
+claim_dev_wide_tbl %>% glimpse()
+claim_dev_wide_tbl %>% print()
+```
+
+
 
 # Split Claims Data
 
