@@ -39,8 +39,6 @@ knitr::opts_chunk$set(tidy  = FALSE
 
 
 set.seed(42)
-
-download_data_dir <- 'C:/Work/vbox_shared/shared_data/generated_data'
 ```
 
 # Load Claim Transactions Data
@@ -48,14 +46,15 @@ download_data_dir <- 'C:/Work/vbox_shared/shared_data/generated_data'
 First we load up the transactional data for the claims
 
 ```{r load_claim_transactions, echo=TRUE}
-data_file <- paste0(download_data_dir
-                   ,'/captive/claims_transaction_data_20170630.csv')
+data_files <- list.files('data', full.names = TRUE, pattern = 'claims_data\\.csv')
 
-claim_transactions_tbl <- read_csv(data_file
-                                  ,progress = FALSE
-                                   )
+claim_transactions_tbl <- tibble(file_src = data_files) %>%
+    mutate(data = map(file_src, read_csv, col_types = cols())) %>%
+    unnest() %>%
+    dplyr::select(-file_src)
 
 claim_transactions_tbl %>% glimpse()
+claim_transactions_tbl %>% print()
 ```
 
 ## Build Quick Year Triangles
