@@ -1,8 +1,8 @@
 ---
 title: "Real-world R for Actuaries"
 subtitle: "Visualising Data"
-author: "Mick Cooney <mcooney@agrippadataconsulting.com>"
-date: "2019-02-18"
+author: "Mick Cooney <mcooney@describedata.com>"
+date: "2019-04-08"
 output:
   html_document:
     fig_caption: yes
@@ -17,13 +17,17 @@ output:
 ---
 
 ```{r set_options, echo=FALSE}
-options(width = 80L
-       ,warn  = 1)
+options(width = 80L,
+        warn  = 1)
 
-knitr::opts_chunk$set(tidy  = FALSE
-                     ,cache = FALSE
-                     ,fig.height =  7
-                     ,fig.width  = 11)
+knitr::opts_chunk$set(tidy       = FALSE,
+                      cache      = FALSE,
+                      warning    = FALSE,
+                      message    = FALSE,
+                      fig.height =     7,
+                      fig.width  =    11)
+
+library(tidyverse)
 ```
 
 ```{r load_data, echo=FALSE, message=FALSE}
@@ -50,12 +54,12 @@ or `BI`).
 
 ```{r plot_first_pointplot, echo=TRUE}
 plot_tbl <- claim_triangles_tbl %>%
-    filter(country_code == 'IRL'
-          ,claim_year   == 2010
-           )
+  filter(country_code == 'IRL',
+         claim_year   == 2010
+         )
 
 ggplot(plot_tbl) +
-    geom_point(aes(x = dev_time, y = total_cuml, colour = claim_type))
+  geom_point(aes(x = dev_time, y = total_cuml, colour = claim_type))
 ```
 
 
@@ -66,12 +70,12 @@ aggregate claims develop over time.
 
 ```{r plot_first_lineplot, echo=TRUE}
 plot_tbl <- claim_triangles_tbl %>%
-    filter(country_code == 'IRL'
-          ,claim_year   == 2010
-           )
+  filter(country_code == 'IRL',
+         claim_year   == 2010
+         )
 
 ggplot(plot_tbl) +
-    geom_line(aes(x = dev_time, y = total_cuml, colour = claim_type))
+  geom_line(aes(x = dev_time, y = total_cuml, colour = claim_type))
 ```
 
 
@@ -83,13 +87,13 @@ To start, we inspect the distribution of BI claim sizes for Ireland in 2010.
 
 ```{r plot_histogram, echo=TRUE}
 plot_tbl <- claim_snapshot_tbl %>%
-    filter(country_code == 'IRL'
-          ,year         == 2010
-          ,claim_type   == 'BI'
-           )
+  filter(country_code == 'IRL',
+         year         == 2010,
+         claim_type   == 'BI'
+         )
 
 ggplot(plot_tbl) +
-    geom_histogram(aes(x = amount))
+  geom_histogram(aes(x = amount))
 ```
 
 By default, the histogram is built from 30 bins, but we can control this
@@ -97,7 +101,7 @@ directly if we wish.
 
 ```{r plot_histogram_50, echo=TRUE}
 ggplot(plot_tbl) +
-    geom_histogram(aes(x = amount), bins = 50)
+  geom_histogram(aes(x = amount), bins = 50)
 ```
 
 
@@ -109,13 +113,13 @@ a boxplot.
 
 ```{r plot_first_boxplot_bi, echo=TRUE}
 plot_tbl <- claim_snapshot_tbl %>%
-    filter(country_code == 'IRL'
-          ,year         == 2010
-          ,claim_type   == 'BI'
-           )
+  filter(country_code == 'IRL',
+         year         == 2010,
+         claim_type   == 'BI'
+         )
 
 ggplot(plot_tbl) +
-    geom_boxplot(aes(x = as.character(yearmonth), y = amount))
+  geom_boxplot(aes(x = as.character(yearmonth), y = amount))
 ```
 
 
@@ -123,12 +127,12 @@ We can also plot the two claim types beside each other at the same time.
 
 ```{r plot_first_boxplot_pd, echo=TRUE}
 plot_tbl <- claim_snapshot_tbl %>%
-    filter(country_code == 'IRL'
-          ,year         == 2010
-           )
+  filter(country_code == 'IRL',
+         year         == 2010
+         )
 
 ggplot(plot_tbl) +
-    geom_boxplot(aes(x = as.character(yearmonth), y = amount, colour = claim_type))
+  geom_boxplot(aes(x = as.character(yearmonth), y = amount, colour = claim_type))
 ```
 
 
@@ -161,13 +165,13 @@ Germany, France and Italy.
 
 ```{r plot_facet_first, echo=TRUE}
 plot_tbl <- claim_triangles_tbl %>%
-    filter(country_code %in% c('GBR','DEU','FRA','ITA')
-          ,claim_year   == 2010
-           )
+  filter(country_code %in% c('GBR', 'DEU', 'FRA', 'ITA'),
+         claim_year   == 2010
+         )
 
 ggplot(plot_tbl) +
-    geom_line(aes(x = dev_time, y = total_cuml, colour = claim_type)) +
-    facet_wrap(~ country_code)
+  geom_line(aes(x = dev_time, y = total_cuml, colour = claim_type)) +
+  facet_wrap(~ country_code)
 ```
 
 By default with facetting we have a common scale, and this can obscure things,
@@ -175,16 +179,16 @@ so we now allow each facet to have its own y-axis:
 
 ```{r plot_facet_freescale, echo=TRUE}
 ggplot(plot_tbl) +
-    geom_line(aes(x = dev_time, y = total_cuml, colour = claim_type)) +
-    facet_wrap(~ country_code, scales = 'free_y')
+  geom_line(aes(x = dev_time, y = total_cuml, colour = claim_type)) +
+  facet_wrap(~ country_code, scales = 'free_y')
 ```
 
 It is also possible to facet in two dimensions, say be country and claim type
 
 ```{r plot_facet_grid, echo=TRUE}
 ggplot(plot_tbl) +
-    geom_line(aes(x = dev_time, y = total_cuml)) +
-    facet_grid(claim_type ~ country_code, scales = 'free_y')
+  geom_line(aes(x = dev_time, y = total_cuml)) +
+  facet_grid(claim_type ~ country_code, scales = 'free_y')
 ```
 
 
@@ -202,13 +206,13 @@ colour by the type of claim, but for the points it is assigned to be black.
 
 ```{r plot_combined_geoms, echo=TRUE}
 plot_tbl <- claim_triangles_tbl %>%
-    filter(country_code == 'IRL'
-          ,claim_year   == 2010
-           )
+  filter(country_code == 'IRL',
+         claim_year   == 2010
+         )
 
 ggplot(plot_tbl) +
-    geom_line (aes(x = dev_time, y = total_cuml, colour = claim_type)) +
-    geom_point(aes(x = dev_time, y = total_cuml), colour = 'black')
+  geom_line (aes(x = dev_time, y = total_cuml, colour = claim_type)) +
+  geom_point(aes(x = dev_time, y = total_cuml), colour = 'black')
 ```
 
 In a plot like these, we can set the default `aes()` values inside the
@@ -217,8 +221,8 @@ In a plot like these, we can set the default `aes()` values inside the
 
 ```{r plot_default_aes, echo=TRUE}
 ggplot(plot_tbl, aes(x = dev_time, y = total_cuml)) +
-    geom_line (aes(colour = claim_type)) +
-    geom_point(colour = 'black')
+  geom_line (aes(colour = claim_type)) +
+  geom_point(colour = 'black')
 ```
 
 
@@ -237,15 +241,15 @@ To show this, let's look at lineplot of the aggregate development again:
 
 ```{r plot_line_with_labels, echo=TRUE}
 plot_tbl <- claim_triangles_tbl %>%
-    filter(country_code == 'IRL'
-          ,claim_year   == 2010
-           )
+  filter(country_code == 'IRL',
+         claim_year   == 2010
+         )
 
 ggplot(plot_tbl) +
-    geom_line (aes(x = dev_time, y = total_cuml, colour = claim_type)) +
-    xlab('Development Time (years)') +
-    ylab('Aggregate Claim Amount') +
-    ggtitle('Plot of Ireland 2010 Claim Development Amounts over Time')
+  geom_line (aes(x = dev_time, y = total_cuml, colour = claim_type)) +
+  xlab('Development Time (years)') +
+  ylab('Aggregate Claim Amount') +
+  ggtitle('Plot of Ireland 2010 Claim Development Amounts over Time')
 ```
 
 
@@ -263,15 +267,15 @@ themes.
 
 ```{r plot_lineplot_themes, echo=TRUE}
 plot_tbl <- claim_triangles_tbl %>%
-    filter(country_code == 'IRL'
-          ,claim_year   == 2010
-           )
+  filter(country_code == 'IRL',
+         claim_year   == 2010
+         )
 
 theme_plot <- ggplot(plot_tbl) +
-    geom_line (aes(x = dev_time, y = total_cuml, colour = claim_type)) +
-    xlab('Development Time (years)') +
-    ylab('Aggregate Claim Amount') +
-    ggtitle('Plot of Ireland 2010 Claim Development Amounts over Time')
+  geom_line (aes(x = dev_time, y = total_cuml, colour = claim_type)) +
+  xlab('Development Time (years)') +
+  ylab('Aggregate Claim Amount') +
+  ggtitle('Plot of Ireland 2010 Claim Development Amounts over Time')
 
 
 theme_plot + theme_classic()
@@ -292,16 +296,16 @@ We start by relabelling the current amounts by using commas - we use the
 
 ```{r plot_lines_yaxis, echo=TRUE}
 plot_tbl <- claim_triangles_tbl %>%
-    filter(country_code == 'IRL'
-          ,claim_year   == 2010
-           )
+  filter(country_code == 'IRL',
+         claim_year   == 2010
+         )
 
 ggplot(plot_tbl) +
-    geom_line (aes(x = dev_time, y = total_cuml, colour = claim_type)) +
-    scale_y_continuous(labels = comma, limits = c(0, 20e6)) +
-    xlab('Development Time (years)') +
-    ylab('Aggregate Claim Amount') +
-    ggtitle('Plot of Ireland 2010 Claim Development Amounts over Time')
+  geom_line (aes(x = dev_time, y = total_cuml, colour = claim_type)) +
+  scale_y_continuous(labels = comma, limits = c(0, 20e6)) +
+  xlab('Development Time (years)') +
+  ylab('Aggregate Claim Amount') +
+  ggtitle('Plot of Ireland 2010 Claim Development Amounts over Time')
 ```
 
 
@@ -309,16 +313,16 @@ We can use scales to transform variables (like use of a log-scale)
 
 ```{r plot_lines_yaxis_scale_log10, echo=TRUE}
 plot_tbl <- claim_triangles_tbl %>%
-    filter(country_code == 'IRL'
-          ,claim_year   == 2010
-           )
+  filter(country_code == 'IRL',
+         claim_year   == 2010
+         )
 
 ggplot(plot_tbl) +
-    geom_line (aes(x = dev_time, y = total_cuml, colour = claim_type)) +
-    scale_y_log10(labels = comma) +
-    xlab('Development Time (years)') +
-    ylab('Aggregate Claim Amount') +
-    ggtitle('Plot of Ireland 2010 Claim Development Amounts over Time')
+  geom_line (aes(x = dev_time, y = total_cuml, colour = claim_type)) +
+  scale_y_log10(labels = comma) +
+  xlab('Development Time (years)') +
+  ylab('Aggregate Claim Amount') +
+  ggtitle('Plot of Ireland 2010 Claim Development Amounts over Time')
 ```
 
 
@@ -326,12 +330,17 @@ We may want to ensure that certain values are included in the range of values.
 
 ```{r plot_lines_scale_ylimit, echo=TRUE}
 ggplot(plot_tbl) +
-    geom_line (aes(x = dev_time, y = total_cuml, colour = claim_type)) +
-    scale_y_continuous(labels = comma, limits = c(0, 20e6)) +
-    xlab('Development Time (years)') +
-    ylab('Aggregate Claim Amount') +
-    ggtitle('Plot of Ireland 2010 Claim Development Amounts over Time')
+  geom_line (aes(x = dev_time, y = total_cuml, colour = claim_type)) +
+  scale_y_continuous(labels = comma, limits = c(0, 20e6)) +
+  xlab('Development Time (years)') +
+  ylab('Aggregate Claim Amount') +
+  ggtitle('Plot of Ireland 2010 Claim Development Amounts over Time')
 ```
 
 
+# Session Info
+
+```{r show_session_info, echo=TRUE}
+sessioninfo::session_info()
+```
 

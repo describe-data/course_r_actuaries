@@ -1,8 +1,8 @@
 ---
 title: "Real-world R for Actuaries"
 subtitle: "Data Manipulation to Build Claims Triangles"
-author: "Mick Cooney <mcooney@agrippadataconsulting.com>"
-date: "2019-02-18"
+author: "Mick Cooney <mcooney@describedata.com>"
+date: "2019-04-08"
 output:
   html_document:
     fig_caption: yes
@@ -19,23 +19,20 @@ output:
 ```{r knit_opts, include = FALSE}
 rm(list = ls())
 
+options(width = 80L,
+        warn  = 1)
+
+knitr::opts_chunk$set(tidy       = FALSE,
+                      cache      = FALSE,
+                      warning    = FALSE,
+                      message    = FALSE,
+                      fig.height =     7,
+                      fig.width  =    11)
+
 library(tidyverse)
 library(scales)
 library(purrr)
 library(cowplot)
-library(feather)
-
-
-
-options(width = 80L
-       ,warn  = 1)
-
-knitr::opts_chunk$set(tidy  = FALSE
-                     ,cache = FALSE
-                     ,warning = FALSE
-                     ,message = FALSE
-                     ,fig.height =  7
-                     ,fig.width  = 11)
 
 
 set.seed(42)
@@ -49,9 +46,9 @@ First we load up the transactional data for the claims
 data_files <- list.files('data', full.names = TRUE, pattern = 'claims_data\\.csv')
 
 claim_transactions_tbl <- tibble(file_src = data_files) %>%
-    mutate(data = map(file_src, read_csv, col_types = cols())) %>%
-    unnest() %>%
-    dplyr::select(-file_src)
+  mutate(data = map(file_src, read_csv, col_types = cols())) %>%
+  unnest(data) %>%
+  dplyr::select(-file_src)
 
 claim_transactions_tbl %>% glimpse()
 claim_transactions_tbl %>% print()
@@ -63,32 +60,32 @@ Now we want to build a quick claim triangle
 
 ```{r build_year_triangles, echo=TRUE}
 bad_triangle_tbl <- claim_transactions_tbl %>%
-    mutate(claim_year = year
-          ,value_year = transaction_date %>% format('%Y') %>% as.numeric) %>%
-    dplyr::select(country_code, claim_id, claim_type, claim_year, value_year, amount) %>%
-    group_by(country_code, claim_type, claim_year, value_year) %>%
-    summarise(total_amount = sum(amount)) %>%
-    mutate(dev_year = value_year - claim_year + 1) %>%
-    ungroup() %>%
-    dplyr::select(country_code, claim_type, claim_year, dev_year, total_amount)
+  mutate(claim_year = year,
+         value_year = transaction_date %>% format('%Y') %>% as.numeric) %>%
+  dplyr::select(country_code, claim_id, claim_type, claim_year, value_year, amount) %>%
+  group_by(country_code, claim_type, claim_year, value_year) %>%
+  summarise(total_amount = sum(amount)) %>%
+  mutate(dev_year = value_year - claim_year + 1) %>%
+  ungroup() %>%
+  dplyr::select(country_code, claim_type, claim_year, dev_year, total_amount)
 
 
 bi_plot_tbl <- bad_triangle_tbl %>% filter(claim_type == 'BI')
 pd_plot_tbl <- bad_triangle_tbl %>% filter(claim_type == 'PD')
 
 ggplot(bi_plot_tbl %>% mutate(claim_year = claim_year %>% as.character)) +
-    geom_line(aes(x = dev_year, y = total_amount, colour = claim_year)) +
-    facet_wrap(~ country_code, scales = 'free_y') +
-    scale_y_continuous(labels = scales::comma) +
-    xlab('Development Year') +
-    ylab('Total Development')
+  geom_line(aes(x = dev_year, y = total_amount, colour = claim_year)) +
+  facet_wrap(~ country_code, scales = 'free_y') +
+  scale_y_continuous(labels = scales::comma) +
+  xlab('Development Year') +
+  ylab('Total Development')
 
 ggplot(pd_plot_tbl %>% mutate(claim_year = claim_year %>% as.character)) +
-    geom_line(aes(x = dev_year, y = total_amount, colour = claim_year)) +
-    facet_wrap(~ country_code, scales = 'free_y') +
-    scale_y_continuous(labels = scales::comma) +
-    xlab('Development Year') +
-    ylab('Total Development')
+  geom_line(aes(x = dev_year, y = total_amount, colour = claim_year)) +
+  facet_wrap(~ country_code, scales = 'free_y') +
+  scale_y_continuous(labels = scales::comma) +
+  xlab('Development Year') +
+  ylab('Total Development')
 
 ```
 
@@ -99,89 +96,89 @@ we need to back fill all those.
 
 ```{r fill_full_triangle, echo=TRUE}
 movements_tbl <- claim_transactions_tbl %>%
-    mutate(claim_year = year
-          ,trans_year = transaction_date %>% format('%Y') %>% as.numeric
-          ,dev_time   = trans_year - claim_year + 1
-          ) %>%
-    group_by(claim_id, dev_time) %>%
-    top_n(1, wt = transaction_date) %>%
-    ungroup() %>%
-    dplyr::select(country_code, claim_type, claim_year, claim_id, dev_time, amount)
+  mutate(claim_year = year,
+         trans_year = transaction_date %>% format('%Y') %>% as.numeric,
+         dev_time   = trans_year - claim_year + 1
+        ) %>%
+  group_by(claim_id, dev_time) %>%
+  top_n(1, wt = transaction_date) %>%
+  ungroup() %>%
+  dplyr::select(country_code, claim_type, claim_year, claim_id, dev_time, amount)
 
 
 
 triangle_zero_tbl <- movements_tbl %>%
-    dplyr::select(country_code, claim_type, claim_year, claim_id) %>%
-    distinct() %>%
-    mutate(dev_time = 0, amount = 0)
+  dplyr::select(country_code, claim_type, claim_year, claim_id) %>%
+  distinct() %>%
+  mutate(dev_time = 0, amount = 0)
 
 
 calc_incr_tbl <- list(triangle_zero_tbl, movements_tbl) %>%
-    bind_rows() %>%
-    group_by(country_code, claim_type, claim_year, claim_id) %>%
-    arrange(dev_time) %>%
-    mutate(increment = amount - lag(amount)) %>%
-    ungroup() %>%
-    arrange(country_code, claim_type, claim_year, claim_id, dev_time) %>%
-    replace_na(list(increment = 0))
+  bind_rows() %>%
+  group_by(country_code, claim_type, claim_year, claim_id) %>%
+  arrange(dev_time) %>%
+  mutate(increment = amount - lag(amount)) %>%
+  ungroup() %>%
+  arrange(country_code, claim_type, claim_year, claim_id, dev_time) %>%
+  replace_na(list(increment = 0))
 
 calc_incr_tbl <- calc_incr_tbl %>%
-    dplyr::select(claim_id, claim_type, claim_year, dev_time, increment)
+  dplyr::select(claim_id, claim_type, claim_year, dev_time, increment)
 
 
 incr_values_tbl <- claim_transactions_tbl %>%
-    dplyr::select(country_code, claim_type, claim_year = year, claim_id) %>%
-    distinct() %>%
-    mutate(data = list(tibble(dev_time = 0:20))) %>%
-    unnest() %>%
-    left_join(calc_incr_tbl, by = c('claim_id', 'claim_type', 'claim_year', 'dev_time')) %>%
-    replace_na(list(increment = 0))
+  dplyr::select(country_code, claim_type, claim_year = year, claim_id) %>%
+  distinct() %>%
+  mutate(data = list(tibble(dev_time = 0:20))) %>%
+  unnest(data) %>%
+  left_join(calc_incr_tbl, by = c('claim_id', 'claim_type', 'claim_year', 'dev_time')) %>%
+  replace_na(list(increment = 0))
 
 
 full_dev_tbl <- incr_values_tbl %>%
-    group_by(country_code, claim_type, claim_year) %>%
-    arrange(dev_time) %>%
-    mutate(cuml_amount = cumsum(increment)) %>%
-    ungroup() %>%
-    arrange(country_code, claim_type, claim_year, claim_id, dev_time)
+  group_by(country_code, claim_type, claim_year) %>%
+  arrange(dev_time) %>%
+  mutate(cuml_amount = cumsum(increment)) %>%
+  ungroup() %>%
+  arrange(country_code, claim_type, claim_year, claim_id, dev_time)
 
 long_triangle_tbl <- full_dev_tbl %>%
-    group_by(country_code, claim_type, claim_year, dev_time) %>%
-    summarise(total_cuml = sum(cuml_amount)) %>%
-    ungroup() %>%
-    filter(claim_year + dev_time <= 2017)
+  group_by(country_code, claim_type, claim_year, dev_time) %>%
+  summarise(total_cuml = sum(cuml_amount)) %>%
+  ungroup() %>%
+  filter(claim_year + dev_time <= 2017)
 
 
 long_bi_tbl <- long_triangle_tbl %>%
-    filter(claim_type == 'BI'
-          ,claim_year >= 2010
-           ) %>%
-    mutate(claim_year = claim_year %>% as.character()
-          ,total_cuml = total_cuml / 1e6
-           )
+  filter(claim_type == 'BI',
+         claim_year >= 2010
+         ) %>%
+  mutate(claim_year = claim_year %>% as.character(),
+         total_cuml = total_cuml / 1e6
+         )
 
 long_pd_tbl <- long_triangle_tbl %>%
-    filter(claim_type == 'PD'
-          ,claim_year >= 2010
-           ) %>%
-    mutate(claim_year = claim_year %>% as.character()
-          ,total_cuml = total_cuml / 1e6
-           )
+  filter(claim_type == 'PD',
+         claim_year >= 2010
+         ) %>%
+  mutate(claim_year = claim_year %>% as.character(),
+         total_cuml = total_cuml / 1e6
+         )
 
 
 ggplot(long_pd_tbl) +
-    geom_line(aes(x = dev_time, y = total_cuml, colour = claim_year)) +
-    facet_wrap(~ country_code, scales = 'free_y') +
-    scale_y_continuous(labels = scales::comma) +
-    xlab("Development Time") +
-    ylab("Total Amount")
+  geom_line(aes(x = dev_time, y = total_cuml, colour = claim_year)) +
+  facet_wrap(~ country_code, scales = 'free_y') +
+  scale_y_continuous(labels = scales::comma) +
+  xlab("Development Time") +
+  ylab("Total Amount")
 ```
 
 
 ## Write to Disk
 
 ```{r write_to_disk, echo=TRUE}
-long_triangle_tbl %>% write_feather('data/yearly_triangles.feather')
+long_triangle_tbl %>% write_rds('data/yearly_triangles.rds')
 ```
 
 
@@ -202,12 +199,12 @@ development year.
 
 ```{r build_triangle_incrementals, echo=TRUE}
 claim_incrementals_tbl <- claim_transactions_tbl %>%
-    group_by(country_code, year, claim_id, claim_type) %>%
-    mutate(incremental = diff(c(0, amount))) %>%
-    ungroup() %>%
-    mutate(dev_days = as.numeric(transaction_date - incident_date)
-          ,dev_year = floor(dev_days / 365.25) + 1
-           )
+  group_by(country_code, year, claim_id, claim_type) %>%
+  mutate(incremental = diff(c(0, amount))) %>%
+  ungroup() %>%
+  mutate(dev_days = as.numeric(transaction_date - incident_date),
+         dev_year = floor(dev_days / 365.25) + 1
+         )
 
 claim_incrementals_tbl %>% glimpse()
 claim_incrementals_tbl %>% print()
@@ -226,20 +223,21 @@ acc_year <- claim_incrementals_tbl %>% pull(year)     %>% unique()
 dev_year <- claim_incrementals_tbl %>% pull(dev_year) %>% unique()
 
 all_tbl <- claim_incrementals_tbl %>%
-    select(country_code, claim_type, year) %>%
-    distinct()
+  select(country_code, claim_type, year) %>%
+  distinct()
 
-full_incr_tbl <- crossing(year     = acc_year
-                    ,dev_year = c(0, dev_year)
-                     ) %>%
-    left_join(all_tbl, by = 'year')
+full_incr_tbl <- crossing(
+    year     = acc_year,
+    dev_year = c(0, dev_year)
+    ) %>%
+  left_join(all_tbl, by = 'year')
 ```
 
 
 ```{r calculate_date_development_periods, echo=TRUE}
 data_dev_tbl <- claim_incrementals_tbl %>%
-    group_by(country_code, year, claim_type, dev_year) %>%
-    summarise(total_incr = sum(incremental))
+  group_by(country_code, year, claim_type, dev_year) %>%
+  summarise(total_incr = sum(incremental))
 
 
 data_dev_tbl %>% glimpse()
@@ -249,10 +247,10 @@ data_dev_tbl %>% print()
 
 ```{r calculate_all_dev_increments, echo=TRUE}
 claim_dev_vals_tbl <- full_incr_tbl %>%
-    left_join(data_dev_tbl, by = c('country_code', 'year', 'claim_type', 'dev_year')) %>%
-    replace_na(list(total_incr = 0)) %>%
-    select(country_code, claim_type, year, dev_year, total_incr) %>%
-    arrange(country_code, claim_type, year, dev_year)
+  left_join(data_dev_tbl, by = c('country_code', 'year', 'claim_type', 'dev_year')) %>%
+  replace_na(list(total_incr = 0)) %>%
+  select(country_code, claim_type, year, dev_year, total_incr) %>%
+  arrange(country_code, claim_type, year, dev_year)
 
 claim_dev_vals_tbl %>% glimpse()
 claim_dev_vals_tbl %>% print()
@@ -263,11 +261,11 @@ We are now in a position to calculate the cumulative amounts for each year.
 
 ```{r calculate_devtable_long, echo=TRUE}
 claim_dev_long_tbl <- claim_dev_vals_tbl %>%
-    group_by(country_code, claim_type, year) %>%
-    arrange(year) %>%
-    mutate(dev_amount = cumsum(total_incr)) %>%
-    ungroup() %>%
-    arrange(country_code, claim_type, year, dev_year)
+  group_by(country_code, claim_type, year) %>%
+  arrange(year) %>%
+  mutate(dev_amount = cumsum(total_incr)) %>%
+  ungroup() %>%
+  arrange(country_code, claim_type, year, dev_year)
   
 claim_dev_long_tbl %>% glimpse()
 claim_dev_long_tbl %>% print()
@@ -277,8 +275,8 @@ We spread this table to 'wide' format:
 
 ```{r spread_devtable_wide, echo=TRUE}
 claim_dev_wide_tbl <- claim_dev_long_tbl %>%
-    select(-total_incr) %>%
-    spread(dev_year, dev_amount)
+  select(-total_incr) %>%
+  spread(dev_year, dev_amount)
 
 claim_dev_wide_tbl %>% glimpse()
 claim_dev_wide_tbl %>% print()
@@ -292,10 +290,17 @@ claim_dev_wide_tbl %>% print()
 countries <- claim_transactions_tbl %>% count(country_code) %>% pull(country_code)
 
 for(country in countries) {
-    output_file <- paste0('data/', country, '_claims_data.csv')
-    
-    claim_transactions_tbl %>%
-        filter(country_code == country) %>%
-        write_csv(path = output_file)
+  output_file <- paste0('data/', country, '_claims_data.csv')
+  
+  claim_transactions_tbl %>%
+    filter(country_code == country) %>%
+    write_csv(path = output_file)
 }
+```
+
+
+# Session Info
+
+```{r show_session_info, echo=TRUE}
+sessioninfo::session_info()
 ```

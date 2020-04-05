@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
 
 <head>
 
 <meta charset="utf-8" />
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
-<meta name="author" content="Mick Cooney mcooney@agrippadataconsulting.com" />
+<meta name="author" content="Mick Cooney mcooney@describedata.com" />
 
-<meta name="date" content="2019-02-18" />
+<meta name="date" content="2019-04-08" />
 
 <title>Real-world R for Actuaries</title>
 
@@ -93,8 +93,6 @@ overflow: auto;
 margin-left: 2%;
 position: fixed;
 border: 1px solid #ccc;
-webkit-border-radius: 6px;
-moz-border-radius: 6px;
 border-radius: 6px;
 }
 
@@ -122,9 +120,14 @@ font-size: 12px;
 .tocify-subheader .tocify-subheader {
 text-indent: 30px;
 }
-
 .tocify-subheader .tocify-subheader .tocify-subheader {
 text-indent: 40px;
+}
+.tocify-subheader .tocify-subheader .tocify-subheader .tocify-subheader {
+text-indent: 50px;
+}
+.tocify-subheader .tocify-subheader .tocify-subheader .tocify-subheader .tocify-subheader {
+text-indent: 60px;
 }
 
 .tocify .tocify-item > a, .tocify .nav-list .nav-header {
@@ -528,13 +531,13 @@ float: none;
 
           item.append($("<a/>", {
 
-            "text": self.text()
+            "html": self.html()
 
           }));
 
         } else {
 
-          item.text(self.text());
+          item.html(self.html());
 
         }
 
@@ -1365,7 +1368,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
       if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
       var style = rule.style.cssText;
       // check if color or background-color is set
-      if (rule.style.color === '' || rule.style.backgroundColor === '') continue;
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
       // replace div.sourceCode by a pre.sourceCode rule
       sheets[i].deleteRule(j);
       sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
@@ -1408,9 +1411,7 @@ h6 {
 </style>
 
 
-</head>
 
-<body>
 
 <style type="text/css">
 .main-container {
@@ -1424,7 +1425,6 @@ code {
 }
 img {
   max-width:100%;
-  height: auto;
 }
 .tabbed-pane {
   padding-top: 12px;
@@ -1441,8 +1441,6 @@ summary {
 </style>
 
 
-
-<div class="container-fluid main-container">
 
 <!-- tabsets -->
 
@@ -1488,6 +1486,7 @@ summary {
   border: none;
   display: inline-block;
   border-radius: 4px;
+  background-color: transparent;
 }
 
 .tabset-dropdown > .nav-tabs.nav-tabs-open > li {
@@ -1500,48 +1499,9 @@ summary {
 }
 </style>
 
-<script>
-$(document).ready(function () {
-  window.buildTabsets("TOC");
-});
-
-$(document).ready(function () {
-  $('.tabset-dropdown > .nav-tabs > li').click(function () {
-    $(this).parent().toggleClass('nav-tabs-open')
-  });
-});
-</script>
-
 <!-- code folding -->
 
 
-
-<script>
-$(document).ready(function ()  {
-
-    // move toc-ignore selectors from section div to header
-    $('div.section.toc-ignore')
-        .removeClass('toc-ignore')
-        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
-
-    // establish options
-    var options = {
-      selectors: "h1,h2,h3",
-      theme: "bootstrap3",
-      context: '.toc-content',
-      hashGenerator: function (text) {
-        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
-      },
-      ignoreSelector: ".toc-ignore",
-      scrollTo: 0
-    };
-    options.showAndHide = true;
-    options.smoothScroll = false;
-
-    // tocify
-    var toc = $("#TOC").tocify(options).data("toc-tocify");
-});
-</script>
 
 <style type="text/css">
 
@@ -1555,6 +1515,12 @@ $(document).ready(function ()  {
 }
 }
 
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
 
 .toc-content {
   padding-left: 30px;
@@ -1590,8 +1556,6 @@ div.tocify {
 
 .tocify-subheader .tocify-item {
   font-size: 0.90em;
-  padding-left: 25px;
-  text-indent: 0;
 }
 
 .tocify .list-group-item {
@@ -1600,6 +1564,16 @@ div.tocify {
 
 
 </style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
 
 <!-- setup 3col/9col grid for toc_float and main content  -->
 <div class="row-fluid">
@@ -1618,13 +1592,21 @@ div.tocify {
 
 
 <h1 class="title toc-ignore">Real-world R for Actuaries</h1>
-<h3 class="subtitle"><em>Loading Data</em></h3>
-<h4 class="author"><em>Mick Cooney <a href="mailto:mcooney@agrippadataconsulting.com" class="email">mcooney@agrippadataconsulting.com</a></em></h4>
-<h4 class="date"><em>2019-02-18</em></h4>
+<h3 class="subtitle">Loading Data</h3>
+<h4 class="author">Mick Cooney <a href="mailto:mcooney@describedata.com" class="email">mcooney@describedata.com</a></h4>
+<h4 class="date">2019-04-08</h4>
 
 </div>
 
 
+<pre><code>## ── Attaching packages ─────────────────────────────────────────────────────────────────────────────────────── tidyverse 1.3.0 ──</code></pre>
+<pre><code>## ✓ ggplot2 3.2.1     ✓ purrr   0.3.3
+## ✓ tibble  2.1.3     ✓ dplyr   0.8.3
+## ✓ tidyr   1.0.0     ✓ stringr 1.4.0
+## ✓ readr   1.3.1     ✓ forcats 0.4.0</code></pre>
+<pre><code>## ── Conflicts ────────────────────────────────────────────────────────────────────────────────────────── tidyverse_conflicts() ──
+## x dplyr::filter() masks stats::filter()
+## x dplyr::lag()    masks stats::lag()</code></pre>
 <div id="loading-and-checking-data" class="section level1">
 <h1><span class="header-section-number">1</span> Loading and Checking Data</h1>
 <p>In this exercise we are going to build claims triangles from transactional claim data. The claims are from a fictional captive insurer for a large logistics company with operations all across Europe.</p>
@@ -1635,123 +1617,107 @@ div.tocify {
 <div id="reading-single-data-files" class="section level3">
 <h3><span class="header-section-number">1.1.1</span> Reading Single Data Files</h3>
 <p>To get started, we are first going to load in the IRL data and look at it.</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="kw">library</span>(tidyverse)</a>
-<a class="sourceLine" id="cb1-2" data-line-number="2"></a>
-<a class="sourceLine" id="cb1-3" data-line-number="3">irl_data_tbl &lt;-<span class="st"> </span><span class="kw">read_csv</span>(<span class="st">&#39;data/IRL_claims_data.csv&#39;</span>)</a></code></pre></div>
-<pre><code>## Parsed with column specification:
-## cols(
-##   country_code = col_character(),
-##   year = col_double(),
-##   claim_id = col_character(),
-##   incident_date = col_date(format = &quot;&quot;),
-##   report_date = col_date(format = &quot;&quot;),
-##   transaction_date = col_date(format = &quot;&quot;),
-##   claim_type = col_character(),
-##   amount = col_double()
-## )</code></pre>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" data-line-number="1"><span class="kw">print</span>(irl_data_tbl)</a></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" data-line-number="1">irl_data_tbl &lt;-<span class="st"> </span><span class="kw">read_csv</span>(<span class="st">'data/IRL_claims_data.csv'</span>)</a>
+<a class="sourceLine" id="cb4-2" data-line-number="2"></a>
+<a class="sourceLine" id="cb4-3" data-line-number="3"><span class="kw">print</span>(irl_data_tbl)</a></code></pre></div>
 <pre><code>## # A tibble: 6,276 x 8
 ##    country_code  year claim_id incident_date report_date transaction_date
 ##    &lt;chr&gt;        &lt;dbl&gt; &lt;chr&gt;    &lt;date&gt;        &lt;date&gt;      &lt;date&gt;          
-##  1 IRL           2000 IRL2000~ 2000-01-08    2000-02-15  2000-05-30      
-##  2 IRL           2000 IRL2000~ 2000-01-08    2000-02-15  2000-11-16      
-##  3 IRL           2000 IRL2000~ 2000-01-08    2000-02-15  2000-11-30      
-##  4 IRL           2000 IRL2000~ 2000-01-08    2000-02-15  2001-05-23      
-##  5 IRL           2000 IRL2000~ 2000-01-08    2000-02-15  2001-08-29      
-##  6 IRL           2000 IRL2000~ 2000-01-08    2000-02-15  2002-10-20      
-##  7 IRL           2000 IRL2000~ 2000-01-19    2000-02-15  2000-12-28      
-##  8 IRL           2000 IRL2000~ 2000-01-19    2000-02-15  2002-12-02      
-##  9 IRL           2000 IRL2000~ 2000-01-19    2000-02-15  2003-01-21      
-## 10 IRL           2000 IRL2000~ 2000-01-19    2000-02-15  2003-12-14      
-## # ... with 6,266 more rows, and 2 more variables: claim_type &lt;chr&gt;,
-## #   amount &lt;dbl&gt;</code></pre>
+##  1 IRL           2000 IRL2000… 2000-01-08    2000-02-15  2000-05-30      
+##  2 IRL           2000 IRL2000… 2000-01-08    2000-02-15  2000-11-16      
+##  3 IRL           2000 IRL2000… 2000-01-08    2000-02-15  2000-11-30      
+##  4 IRL           2000 IRL2000… 2000-01-08    2000-02-15  2001-05-23      
+##  5 IRL           2000 IRL2000… 2000-01-08    2000-02-15  2001-08-29      
+##  6 IRL           2000 IRL2000… 2000-01-08    2000-02-15  2002-10-20      
+##  7 IRL           2000 IRL2000… 2000-01-19    2000-02-15  2000-12-28      
+##  8 IRL           2000 IRL2000… 2000-01-19    2000-02-15  2002-12-02      
+##  9 IRL           2000 IRL2000… 2000-01-19    2000-02-15  2003-01-21      
+## 10 IRL           2000 IRL2000… 2000-01-19    2000-02-15  2003-12-14      
+## # … with 6,266 more rows, and 2 more variables: claim_type &lt;chr&gt;, amount &lt;dbl&gt;</code></pre>
 <p>It is important to look at your data after you load it!</p>
 <p><code>glimpse()</code> is a useful tool here to check a table</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" data-line-number="1"><span class="kw">glimpse</span>(irl_data_tbl)</a></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb6-1" data-line-number="1"><span class="kw">glimpse</span>(irl_data_tbl)</a></code></pre></div>
 <pre><code>## Observations: 6,276
 ## Variables: 8
-## $ country_code     &lt;chr&gt; &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;...
-## $ year             &lt;dbl&gt; 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 20...
-## $ claim_id         &lt;chr&gt; &quot;IRL200001CL0002&quot;, &quot;IRL200001CL0002&quot;, &quot;IRL200001CL...
-## $ incident_date    &lt;date&gt; 2000-01-08, 2000-01-08, 2000-01-08, 2000-01-08, 2...
-## $ report_date      &lt;date&gt; 2000-02-15, 2000-02-15, 2000-02-15, 2000-02-15, 2...
-## $ transaction_date &lt;date&gt; 2000-05-30, 2000-11-16, 2000-11-30, 2001-05-23, 2...
-## $ claim_type       &lt;chr&gt; &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;P...
-## $ amount           &lt;dbl&gt; 313.91, 1598.53, 1459.29, 1556.08, 3734.53, 2624.5...</code></pre>
+## $ country_code     &lt;chr&gt; &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;IR…
+## $ year             &lt;dbl&gt; 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000…
+## $ claim_id         &lt;chr&gt; &quot;IRL200001CL0002&quot;, &quot;IRL200001CL0002&quot;, &quot;IRL200001CL00…
+## $ incident_date    &lt;date&gt; 2000-01-08, 2000-01-08, 2000-01-08, 2000-01-08, 200…
+## $ report_date      &lt;date&gt; 2000-02-15, 2000-02-15, 2000-02-15, 2000-02-15, 200…
+## $ transaction_date &lt;date&gt; 2000-05-30, 2000-11-16, 2000-11-30, 2001-05-23, 200…
+## $ claim_type       &lt;chr&gt; &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;…
+## $ amount           &lt;dbl&gt; 313.91, 1598.53, 1459.29, 1556.08, 3734.53, 2624.53,…</code></pre>
+<p>If we do not provide any specification for the column types, <code>read_csv</code> will output the specification used. To remove this warning, we supply our own spec to ensure the data types are fixed.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" data-line-number="1">data_cols &lt;-<span class="st"> </span><span class="kw">cols</span>(</a>
+<a class="sourceLine" id="cb8-2" data-line-number="2">  <span class="dt">country_code     =</span> <span class="kw">col_character</span>(),</a>
+<a class="sourceLine" id="cb8-3" data-line-number="3">  <span class="dt">year             =</span> <span class="kw">col_double</span>(),</a>
+<a class="sourceLine" id="cb8-4" data-line-number="4">  <span class="dt">claim_id         =</span> <span class="kw">col_character</span>(),</a>
+<a class="sourceLine" id="cb8-5" data-line-number="5">  <span class="dt">incident_date    =</span> <span class="kw">col_date</span>(<span class="dt">format =</span> <span class="st">&quot;&quot;</span>),</a>
+<a class="sourceLine" id="cb8-6" data-line-number="6">  <span class="dt">report_date      =</span> <span class="kw">col_date</span>(<span class="dt">format =</span> <span class="st">&quot;&quot;</span>),</a>
+<a class="sourceLine" id="cb8-7" data-line-number="7">  <span class="dt">transaction_date =</span> <span class="kw">col_date</span>(<span class="dt">format =</span> <span class="st">&quot;&quot;</span>),</a>
+<a class="sourceLine" id="cb8-8" data-line-number="8">  <span class="dt">claim_type       =</span> <span class="kw">col_character</span>(),</a>
+<a class="sourceLine" id="cb8-9" data-line-number="9">  <span class="dt">amount           =</span> <span class="kw">col_double</span>()</a>
+<a class="sourceLine" id="cb8-10" data-line-number="10">)</a>
+<a class="sourceLine" id="cb8-11" data-line-number="11"></a>
+<a class="sourceLine" id="cb8-12" data-line-number="12"></a>
+<a class="sourceLine" id="cb8-13" data-line-number="13">irl_data_tbl &lt;-<span class="st"> </span><span class="kw">read_csv</span>(<span class="st">'data/IRL_claims_data.csv'</span>,</a>
+<a class="sourceLine" id="cb8-14" data-line-number="14">                         <span class="dt">col_types =</span> data_cols)</a>
+<a class="sourceLine" id="cb8-15" data-line-number="15"></a>
+<a class="sourceLine" id="cb8-16" data-line-number="16">irl_data_tbl <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">glimpse</span>()</a></code></pre></div>
+<pre><code>## Observations: 6,276
+## Variables: 8
+## $ country_code     &lt;chr&gt; &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;IR…
+## $ year             &lt;dbl&gt; 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000…
+## $ claim_id         &lt;chr&gt; &quot;IRL200001CL0002&quot;, &quot;IRL200001CL0002&quot;, &quot;IRL200001CL00…
+## $ incident_date    &lt;date&gt; 2000-01-08, 2000-01-08, 2000-01-08, 2000-01-08, 200…
+## $ report_date      &lt;date&gt; 2000-02-15, 2000-02-15, 2000-02-15, 2000-02-15, 200…
+## $ transaction_date &lt;date&gt; 2000-05-30, 2000-11-16, 2000-11-30, 2001-05-23, 200…
+## $ claim_type       &lt;chr&gt; &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;…
+## $ amount           &lt;dbl&gt; 313.91, 1598.53, 1459.29, 1556.08, 3734.53, 2624.53,…</code></pre>
 </div>
 <div id="reading-multiple-data-files" class="section level3">
 <h3><span class="header-section-number">1.1.2</span> Reading Multiple Data Files</h3>
 <p>A common use-case for this work is when the data is spread around multiple files.</p>
 <p>The brute force way to solve this problem is to read each file separately and join the data together.</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" data-line-number="1">irl_data_tbl &lt;-<span class="st"> </span><span class="kw">read_csv</span>(<span class="st">&#39;data/IRL_claims_data.csv&#39;</span>)</a></code></pre></div>
-<pre><code>## Parsed with column specification:
-## cols(
-##   country_code = col_character(),
-##   year = col_double(),
-##   claim_id = col_character(),
-##   incident_date = col_date(format = &quot;&quot;),
-##   report_date = col_date(format = &quot;&quot;),
-##   transaction_date = col_date(format = &quot;&quot;),
-##   claim_type = col_character(),
-##   amount = col_double()
-## )</code></pre>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb9-1" data-line-number="1">gbr_data_tbl &lt;-<span class="st"> </span><span class="kw">read_csv</span>(<span class="st">&#39;data/GBR_claims_data.csv&#39;</span>)</a></code></pre></div>
-<pre><code>## Parsed with column specification:
-## cols(
-##   country_code = col_character(),
-##   year = col_double(),
-##   claim_id = col_character(),
-##   incident_date = col_date(format = &quot;&quot;),
-##   report_date = col_date(format = &quot;&quot;),
-##   transaction_date = col_date(format = &quot;&quot;),
-##   claim_type = col_character(),
-##   amount = col_double()
-## )</code></pre>
-<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb11-1" data-line-number="1">deu_data_tbl &lt;-<span class="st"> </span><span class="kw">read_csv</span>(<span class="st">&#39;data/DEU_claims_data.csv&#39;</span>)</a></code></pre></div>
-<pre><code>## Parsed with column specification:
-## cols(
-##   country_code = col_character(),
-##   year = col_double(),
-##   claim_id = col_character(),
-##   incident_date = col_date(format = &quot;&quot;),
-##   report_date = col_date(format = &quot;&quot;),
-##   transaction_date = col_date(format = &quot;&quot;),
-##   claim_type = col_character(),
-##   amount = col_double()
-## )</code></pre>
-<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb13-1" data-line-number="1">multiple_data_tbl &lt;-<span class="st"> </span><span class="kw">list</span>(irl_data_tbl</a>
-<a class="sourceLine" id="cb13-2" data-line-number="2">                         ,gbr_data_tbl</a>
-<a class="sourceLine" id="cb13-3" data-line-number="3">                         ,deu_data_tbl</a>
-<a class="sourceLine" id="cb13-4" data-line-number="4">                          ) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb13-5" data-line-number="5"><span class="st">    </span><span class="kw">bind_rows</span>()</a>
-<a class="sourceLine" id="cb13-6" data-line-number="6"></a>
-<a class="sourceLine" id="cb13-7" data-line-number="7"></a>
-<a class="sourceLine" id="cb13-8" data-line-number="8"><span class="kw">glimpse</span>(multiple_data_tbl)</a></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb10-1" data-line-number="1">irl_data_tbl &lt;-<span class="st"> </span><span class="kw">read_csv</span>(<span class="st">'data/IRL_claims_data.csv'</span>, <span class="dt">col_types =</span> data_cols)</a>
+<a class="sourceLine" id="cb10-2" data-line-number="2">gbr_data_tbl &lt;-<span class="st"> </span><span class="kw">read_csv</span>(<span class="st">'data/GBR_claims_data.csv'</span>, <span class="dt">col_types =</span> data_cols)</a>
+<a class="sourceLine" id="cb10-3" data-line-number="3">deu_data_tbl &lt;-<span class="st"> </span><span class="kw">read_csv</span>(<span class="st">'data/DEU_claims_data.csv'</span>, <span class="dt">col_types =</span> data_cols)</a>
+<a class="sourceLine" id="cb10-4" data-line-number="4"></a>
+<a class="sourceLine" id="cb10-5" data-line-number="5"></a>
+<a class="sourceLine" id="cb10-6" data-line-number="6">multiple_data_tbl &lt;-<span class="st"> </span><span class="kw">list</span>(</a>
+<a class="sourceLine" id="cb10-7" data-line-number="7">    irl_data_tbl,</a>
+<a class="sourceLine" id="cb10-8" data-line-number="8">    gbr_data_tbl,</a>
+<a class="sourceLine" id="cb10-9" data-line-number="9">    deu_data_tbl</a>
+<a class="sourceLine" id="cb10-10" data-line-number="10">    ) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb10-11" data-line-number="11"><span class="st">  </span><span class="kw">bind_rows</span>()</a>
+<a class="sourceLine" id="cb10-12" data-line-number="12"></a>
+<a class="sourceLine" id="cb10-13" data-line-number="13"></a>
+<a class="sourceLine" id="cb10-14" data-line-number="14"><span class="kw">glimpse</span>(multiple_data_tbl)</a></code></pre></div>
 <pre><code>## Observations: 197,707
 ## Variables: 8
-## $ country_code     &lt;chr&gt; &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;...
-## $ year             &lt;dbl&gt; 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 20...
-## $ claim_id         &lt;chr&gt; &quot;IRL200001CL0002&quot;, &quot;IRL200001CL0002&quot;, &quot;IRL200001CL...
-## $ incident_date    &lt;date&gt; 2000-01-08, 2000-01-08, 2000-01-08, 2000-01-08, 2...
-## $ report_date      &lt;date&gt; 2000-02-15, 2000-02-15, 2000-02-15, 2000-02-15, 2...
-## $ transaction_date &lt;date&gt; 2000-05-30, 2000-11-16, 2000-11-30, 2001-05-23, 2...
-## $ claim_type       &lt;chr&gt; &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;P...
-## $ amount           &lt;dbl&gt; 313.91, 1598.53, 1459.29, 1556.08, 3734.53, 2624.5...</code></pre>
-<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb15-1" data-line-number="1"><span class="kw">print</span>(multiple_data_tbl)</a></code></pre></div>
+## $ country_code     &lt;chr&gt; &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;IR…
+## $ year             &lt;dbl&gt; 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000…
+## $ claim_id         &lt;chr&gt; &quot;IRL200001CL0002&quot;, &quot;IRL200001CL0002&quot;, &quot;IRL200001CL00…
+## $ incident_date    &lt;date&gt; 2000-01-08, 2000-01-08, 2000-01-08, 2000-01-08, 200…
+## $ report_date      &lt;date&gt; 2000-02-15, 2000-02-15, 2000-02-15, 2000-02-15, 200…
+## $ transaction_date &lt;date&gt; 2000-05-30, 2000-11-16, 2000-11-30, 2001-05-23, 200…
+## $ claim_type       &lt;chr&gt; &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;…
+## $ amount           &lt;dbl&gt; 313.91, 1598.53, 1459.29, 1556.08, 3734.53, 2624.53,…</code></pre>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb12-1" data-line-number="1"><span class="kw">print</span>(multiple_data_tbl)</a></code></pre></div>
 <pre><code>## # A tibble: 197,707 x 8
 ##    country_code  year claim_id incident_date report_date transaction_date
 ##    &lt;chr&gt;        &lt;dbl&gt; &lt;chr&gt;    &lt;date&gt;        &lt;date&gt;      &lt;date&gt;          
-##  1 IRL           2000 IRL2000~ 2000-01-08    2000-02-15  2000-05-30      
-##  2 IRL           2000 IRL2000~ 2000-01-08    2000-02-15  2000-11-16      
-##  3 IRL           2000 IRL2000~ 2000-01-08    2000-02-15  2000-11-30      
-##  4 IRL           2000 IRL2000~ 2000-01-08    2000-02-15  2001-05-23      
-##  5 IRL           2000 IRL2000~ 2000-01-08    2000-02-15  2001-08-29      
-##  6 IRL           2000 IRL2000~ 2000-01-08    2000-02-15  2002-10-20      
-##  7 IRL           2000 IRL2000~ 2000-01-19    2000-02-15  2000-12-28      
-##  8 IRL           2000 IRL2000~ 2000-01-19    2000-02-15  2002-12-02      
-##  9 IRL           2000 IRL2000~ 2000-01-19    2000-02-15  2003-01-21      
-## 10 IRL           2000 IRL2000~ 2000-01-19    2000-02-15  2003-12-14      
-## # ... with 197,697 more rows, and 2 more variables: claim_type &lt;chr&gt;,
+##  1 IRL           2000 IRL2000… 2000-01-08    2000-02-15  2000-05-30      
+##  2 IRL           2000 IRL2000… 2000-01-08    2000-02-15  2000-11-16      
+##  3 IRL           2000 IRL2000… 2000-01-08    2000-02-15  2000-11-30      
+##  4 IRL           2000 IRL2000… 2000-01-08    2000-02-15  2001-05-23      
+##  5 IRL           2000 IRL2000… 2000-01-08    2000-02-15  2001-08-29      
+##  6 IRL           2000 IRL2000… 2000-01-08    2000-02-15  2002-10-20      
+##  7 IRL           2000 IRL2000… 2000-01-19    2000-02-15  2000-12-28      
+##  8 IRL           2000 IRL2000… 2000-01-19    2000-02-15  2002-12-02      
+##  9 IRL           2000 IRL2000… 2000-01-19    2000-02-15  2003-01-21      
+## 10 IRL           2000 IRL2000… 2000-01-19    2000-02-15  2003-12-14      
+## # … with 197,697 more rows, and 2 more variables: claim_type &lt;chr&gt;,
 ## #   amount &lt;dbl&gt;</code></pre>
 </div>
 <div id="automate-multiple-files" class="section level3">
@@ -1759,73 +1725,63 @@ div.tocify {
 <p>For a large number of files, the manual coding approach becomes a huge pain, as well as being very error-prone.</p>
 <p>A much better approach is to automatically load all the files in a directory automatically, and stack them up at the end.</p>
 <p>First, we can use <code>list.files()</code> to get a list of all the files in a given directory, finding all files ending with ‘.csv’</p>
-<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb17-1" data-line-number="1">data_files &lt;-<span class="st"> </span><span class="kw">list.files</span>(<span class="st">&#39;data&#39;</span>, <span class="dt">full.names =</span> <span class="ot">TRUE</span>, <span class="dt">pattern =</span> <span class="st">&#39;</span><span class="ch">\\</span><span class="st">.csv&#39;</span>)</a>
-<a class="sourceLine" id="cb17-2" data-line-number="2"></a>
-<a class="sourceLine" id="cb17-3" data-line-number="3"><span class="kw">print</span>(data_files)</a></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb14-1" data-line-number="1">data_files &lt;-<span class="st"> </span><span class="kw">list.files</span>(<span class="st">'data'</span>, <span class="dt">full.names =</span> <span class="ot">TRUE</span>, <span class="dt">pattern =</span> <span class="st">'</span><span class="ch">\\</span><span class="st">.csv'</span>)</a>
+<a class="sourceLine" id="cb14-2" data-line-number="2"></a>
+<a class="sourceLine" id="cb14-3" data-line-number="3"><span class="kw">print</span>(data_files)</a></code></pre></div>
 <pre><code>##  [1] &quot;data/AUT_claims_data.csv&quot; &quot;data/BEL_claims_data.csv&quot;
 ##  [3] &quot;data/DEU_claims_data.csv&quot; &quot;data/DNK_claims_data.csv&quot;
 ##  [5] &quot;data/ESP_claims_data.csv&quot; &quot;data/FRA_claims_data.csv&quot;
 ##  [7] &quot;data/GBR_claims_data.csv&quot; &quot;data/IRL_claims_data.csv&quot;
 ##  [9] &quot;data/ITA_claims_data.csv&quot; &quot;data/NLD_claims_data.csv&quot;
 ## [11] &quot;data/POL_claims_data.csv&quot; &quot;data/PRT_claims_data.csv&quot;
-## [13] &quot;data/SWE_claims_data.csv&quot; &quot;data/temp_data.csv&quot;</code></pre>
+## [13] &quot;data/SWE_claims_data.csv&quot;</code></pre>
 <p>Now that we have a list of the files, we want to read in each one as a table and then stack them all on top of each other at the end.</p>
 <p>The code below does this using tools provided in the tidyverse, but a full explanation of what this code is doing is beyond the scope of the course.</p>
 <p>That said, it is such a common use case in the real-world it would be a shame to not mention it at all, so rather than going down the rabbit hole of nested data frames and functional programming, we instead gloss over the finer details and provide the code as a recipe.</p>
-<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb19-1" data-line-number="1">claim_transactions_tbl &lt;-<span class="st"> </span><span class="kw">tibble</span>(<span class="dt">file_src =</span> data_files) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb19-2" data-line-number="2"><span class="st">    </span><span class="co">## Read in each file as a table</span></a>
-<a class="sourceLine" id="cb19-3" data-line-number="3"><span class="st">    </span><span class="kw">mutate</span>(<span class="dt">data =</span> <span class="kw">map</span>(file_src, read_csv, <span class="dt">col_types =</span> <span class="kw">cols</span>())) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb19-4" data-line-number="4"><span class="st">  </span></a>
-<a class="sourceLine" id="cb19-5" data-line-number="5"><span class="st">    </span><span class="co">## Expand out each individual table</span></a>
-<a class="sourceLine" id="cb19-6" data-line-number="6"><span class="st">    </span><span class="kw">unnest</span>() <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb19-7" data-line-number="7"><span class="st">  </span></a>
-<a class="sourceLine" id="cb19-8" data-line-number="8"><span class="st">    </span><span class="co">## Remove the filename as we do not need it</span></a>
-<a class="sourceLine" id="cb19-9" data-line-number="9"><span class="st">    </span>dplyr<span class="op">::</span><span class="kw">select</span>(<span class="op">-</span>file_src) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb19-10" data-line-number="10"><span class="st">  </span></a>
-<a class="sourceLine" id="cb19-11" data-line-number="11"><span class="st">    </span><span class="co">## Calculate some derived values</span></a>
-<a class="sourceLine" id="cb19-12" data-line-number="12"><span class="st">    </span><span class="kw">mutate</span>(<span class="dt">claim_lifetime =</span> <span class="kw">as.numeric</span>(transaction_date <span class="op">-</span><span class="st"> </span>incident_date)</a>
-<a class="sourceLine" id="cb19-13" data-line-number="13">          ,<span class="dt">yearmonth      =</span> <span class="kw">format</span>(incident_date, <span class="st">&#39;%Y%m&#39;</span>)</a>
-<a class="sourceLine" id="cb19-14" data-line-number="14">    )</a>
-<a class="sourceLine" id="cb19-15" data-line-number="15"></a>
-<a class="sourceLine" id="cb19-16" data-line-number="16"><span class="kw">glimpse</span>(claim_transactions_tbl)</a></code></pre></div>
-<pre><code>## Observations: 904,536
-## Variables: 18
-## $ country_code       &lt;chr&gt; &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;,...
-## $ year               &lt;dbl&gt; 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, ...
-## $ claim_id           &lt;chr&gt; &quot;AUT200001CL0001&quot;, &quot;AUT200001CL0001&quot;, &quot;AUT200001...
-## $ incident_date      &lt;date&gt; 2000-01-03, 2000-01-03, 2000-01-05, 2000-01-05,...
-## $ report_date        &lt;date&gt; 2000-01-20, 2000-01-20, 2000-01-13, 2000-01-13,...
-## $ transaction_date   &lt;date&gt; 2001-10-06, 2007-08-31, 2000-03-12, 2001-05-30,...
-## $ claim_type         &lt;chr&gt; &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, ...
-## $ amount             &lt;dbl&gt; 501.87, 1195.22, 80.06, 406.39, 644.63, 386.06, ...
-## $ `Country Code`     &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, ...
-## $ Year               &lt;dbl&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, ...
-## $ `Claim ID`         &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, ...
-## $ `Incident Date`    &lt;date&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,...
-## $ `Report Date`      &lt;date&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,...
-## $ `Transaction Date` &lt;date&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,...
-## $ `Claim Type`       &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, ...
-## $ Amount             &lt;dbl&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, ...
-## $ claim_lifetime     &lt;dbl&gt; 642, 2797, 67, 511, 1930, 418, 573, 642, 749, 85...
-## $ yearmonth          &lt;chr&gt; &quot;200001&quot;, &quot;200001&quot;, &quot;200001&quot;, &quot;200001&quot;, &quot;200001&quot;...</code></pre>
-<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb21-1" data-line-number="1"><span class="kw">print</span>(claim_transactions_tbl)</a></code></pre></div>
-<pre><code>## # A tibble: 904,536 x 18
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb16-1" data-line-number="1">claim_transactions_tbl &lt;-<span class="st"> </span><span class="kw">tibble</span>(<span class="dt">file_src =</span> data_files) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb16-2" data-line-number="2"><span class="st">  </span><span class="co">## Read in each file as a table</span></a>
+<a class="sourceLine" id="cb16-3" data-line-number="3"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">data =</span> <span class="kw">map</span>(file_src, read_csv, <span class="dt">col_types =</span> <span class="kw">cols</span>())) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb16-4" data-line-number="4"></a>
+<a class="sourceLine" id="cb16-5" data-line-number="5"><span class="st">  </span><span class="co">## Expand out each individual table</span></a>
+<a class="sourceLine" id="cb16-6" data-line-number="6"><span class="st">  </span><span class="kw">unnest</span>(data) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb16-7" data-line-number="7"></a>
+<a class="sourceLine" id="cb16-8" data-line-number="8"><span class="st">  </span><span class="co">## Remove the filename as we do not need it</span></a>
+<a class="sourceLine" id="cb16-9" data-line-number="9"><span class="st">  </span>dplyr<span class="op">::</span><span class="kw">select</span>(<span class="op">-</span>file_src) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb16-10" data-line-number="10"></a>
+<a class="sourceLine" id="cb16-11" data-line-number="11"><span class="st">  </span><span class="co">## Calculate some derived values</span></a>
+<a class="sourceLine" id="cb16-12" data-line-number="12"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">claim_lifetime =</span> <span class="kw">as.numeric</span>(transaction_date <span class="op">-</span><span class="st"> </span>incident_date),</a>
+<a class="sourceLine" id="cb16-13" data-line-number="13">         <span class="dt">yearmonth      =</span> <span class="kw">format</span>(incident_date, <span class="st">'%Y%m'</span>)</a>
+<a class="sourceLine" id="cb16-14" data-line-number="14">  )</a>
+<a class="sourceLine" id="cb16-15" data-line-number="15"></a>
+<a class="sourceLine" id="cb16-16" data-line-number="16"><span class="kw">glimpse</span>(claim_transactions_tbl)</a></code></pre></div>
+<pre><code>## Observations: 452,268
+## Variables: 10
+## $ country_code     &lt;chr&gt; &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;AU…
+## $ year             &lt;dbl&gt; 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000…
+## $ claim_id         &lt;chr&gt; &quot;AUT200001CL0001&quot;, &quot;AUT200001CL0001&quot;, &quot;AUT200001CL00…
+## $ incident_date    &lt;date&gt; 2000-01-03, 2000-01-03, 2000-01-05, 2000-01-05, 200…
+## $ report_date      &lt;date&gt; 2000-01-20, 2000-01-20, 2000-01-13, 2000-01-13, 200…
+## $ transaction_date &lt;date&gt; 2001-10-06, 2007-08-31, 2000-03-12, 2001-05-30, 200…
+## $ claim_type       &lt;chr&gt; &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;…
+## $ amount           &lt;dbl&gt; 501.87, 1195.22, 80.06, 406.39, 644.63, 386.06, 292.…
+## $ claim_lifetime   &lt;dbl&gt; 642, 2797, 67, 511, 1930, 418, 573, 642, 749, 854, 1…
+## $ yearmonth        &lt;chr&gt; &quot;200001&quot;, &quot;200001&quot;, &quot;200001&quot;, &quot;200001&quot;, &quot;200001&quot;, &quot;2…</code></pre>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb18-1" data-line-number="1"><span class="kw">print</span>(claim_transactions_tbl)</a></code></pre></div>
+<pre><code>## # A tibble: 452,268 x 10
 ##    country_code  year claim_id incident_date report_date transaction_date
 ##    &lt;chr&gt;        &lt;dbl&gt; &lt;chr&gt;    &lt;date&gt;        &lt;date&gt;      &lt;date&gt;          
-##  1 AUT           2000 AUT2000~ 2000-01-03    2000-01-20  2001-10-06      
-##  2 AUT           2000 AUT2000~ 2000-01-03    2000-01-20  2007-08-31      
-##  3 AUT           2000 AUT2000~ 2000-01-05    2000-01-13  2000-03-12      
-##  4 AUT           2000 AUT2000~ 2000-01-05    2000-01-13  2001-05-30      
-##  5 AUT           2000 AUT2000~ 2000-01-05    2000-01-13  2005-04-18      
-##  6 AUT           2000 AUT2000~ 2000-01-06    2000-01-15  2001-02-27      
-##  7 AUT           2000 AUT2000~ 2000-01-06    2000-01-15  2001-08-01      
-##  8 AUT           2000 AUT2000~ 2000-01-06    2000-01-15  2001-10-09      
-##  9 AUT           2000 AUT2000~ 2000-01-06    2000-01-15  2002-01-24      
-## 10 AUT           2000 AUT2000~ 2000-01-06    2000-01-15  2002-05-09      
-## # ... with 904,526 more rows, and 12 more variables: claim_type &lt;chr&gt;,
-## #   amount &lt;dbl&gt;, `Country Code` &lt;chr&gt;, Year &lt;dbl&gt;, `Claim ID` &lt;chr&gt;, `Incident
-## #   Date` &lt;date&gt;, `Report Date` &lt;date&gt;, `Transaction Date` &lt;date&gt;, `Claim
-## #   Type` &lt;chr&gt;, Amount &lt;dbl&gt;, claim_lifetime &lt;dbl&gt;, yearmonth &lt;chr&gt;</code></pre>
+##  1 AUT           2000 AUT2000… 2000-01-03    2000-01-20  2001-10-06      
+##  2 AUT           2000 AUT2000… 2000-01-03    2000-01-20  2007-08-31      
+##  3 AUT           2000 AUT2000… 2000-01-05    2000-01-13  2000-03-12      
+##  4 AUT           2000 AUT2000… 2000-01-05    2000-01-13  2001-05-30      
+##  5 AUT           2000 AUT2000… 2000-01-05    2000-01-13  2005-04-18      
+##  6 AUT           2000 AUT2000… 2000-01-06    2000-01-15  2001-02-27      
+##  7 AUT           2000 AUT2000… 2000-01-06    2000-01-15  2001-08-01      
+##  8 AUT           2000 AUT2000… 2000-01-06    2000-01-15  2001-10-09      
+##  9 AUT           2000 AUT2000… 2000-01-06    2000-01-15  2002-01-24      
+## 10 AUT           2000 AUT2000… 2000-01-06    2000-01-15  2002-05-09      
+## # … with 452,258 more rows, and 4 more variables: claim_type &lt;chr&gt;,
+## #   amount &lt;dbl&gt;, claim_lifetime &lt;dbl&gt;, yearmonth &lt;chr&gt;</code></pre>
 </div>
 </div>
 <div id="setting-column-types" class="section level2">
@@ -1836,44 +1792,34 @@ div.tocify {
 <p>Another good example of this are phone numbers. Area codes often start with leading zeros and get lost.</p>
 <p>For this reason, the tidyverse and <code>readr</code> in particular provide us a useful mechanism for setting column types that is both convenient to use and easy to remember.</p>
 <p>It is easiest to illustrate with an example:</p>
-<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb23-1" data-line-number="1">irl_data_tbl &lt;-<span class="st"> </span><span class="kw">read_csv</span>(<span class="st">&#39;data/IRL_claims_data.csv&#39;</span>)</a></code></pre></div>
-<pre><code>## Parsed with column specification:
-## cols(
-##   country_code = col_character(),
-##   year = col_double(),
-##   claim_id = col_character(),
-##   incident_date = col_date(format = &quot;&quot;),
-##   report_date = col_date(format = &quot;&quot;),
-##   transaction_date = col_date(format = &quot;&quot;),
-##   claim_type = col_character(),
-##   amount = col_double()
-## )</code></pre>
-<div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb25-1" data-line-number="1"><span class="kw">glimpse</span>(irl_data_tbl)</a></code></pre></div>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb20-1" data-line-number="1">irl_data_tbl &lt;-<span class="st"> </span><span class="kw">read_csv</span>(<span class="st">'data/IRL_claims_data.csv'</span>)</a>
+<a class="sourceLine" id="cb20-2" data-line-number="2"></a>
+<a class="sourceLine" id="cb20-3" data-line-number="3"><span class="kw">glimpse</span>(irl_data_tbl)</a></code></pre></div>
 <pre><code>## Observations: 6,276
 ## Variables: 8
-## $ country_code     &lt;chr&gt; &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;...
-## $ year             &lt;dbl&gt; 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 20...
-## $ claim_id         &lt;chr&gt; &quot;IRL200001CL0002&quot;, &quot;IRL200001CL0002&quot;, &quot;IRL200001CL...
-## $ incident_date    &lt;date&gt; 2000-01-08, 2000-01-08, 2000-01-08, 2000-01-08, 2...
-## $ report_date      &lt;date&gt; 2000-02-15, 2000-02-15, 2000-02-15, 2000-02-15, 2...
-## $ transaction_date &lt;date&gt; 2000-05-30, 2000-11-16, 2000-11-30, 2001-05-23, 2...
-## $ claim_type       &lt;chr&gt; &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;P...
-## $ amount           &lt;dbl&gt; 313.91, 1598.53, 1459.29, 1556.08, 3734.53, 2624.5...</code></pre>
-<div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb27-1" data-line-number="1">irl_data_coltypes_tbl &lt;-<span class="st"> </span><span class="kw">read_csv</span>(<span class="st">&#39;data/IRL_claims_data.csv&#39;</span></a>
-<a class="sourceLine" id="cb27-2" data-line-number="2">                                 ,<span class="dt">col_types =</span> <span class="kw">cols</span>(<span class="dt">year =</span> <span class="kw">col_integer</span>())</a>
-<a class="sourceLine" id="cb27-3" data-line-number="3">                                  )</a>
-<a class="sourceLine" id="cb27-4" data-line-number="4"></a>
-<a class="sourceLine" id="cb27-5" data-line-number="5"><span class="kw">glimpse</span>(irl_data_coltypes_tbl)</a></code></pre></div>
+## $ country_code     &lt;chr&gt; &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;IR…
+## $ year             &lt;dbl&gt; 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000…
+## $ claim_id         &lt;chr&gt; &quot;IRL200001CL0002&quot;, &quot;IRL200001CL0002&quot;, &quot;IRL200001CL00…
+## $ incident_date    &lt;date&gt; 2000-01-08, 2000-01-08, 2000-01-08, 2000-01-08, 200…
+## $ report_date      &lt;date&gt; 2000-02-15, 2000-02-15, 2000-02-15, 2000-02-15, 200…
+## $ transaction_date &lt;date&gt; 2000-05-30, 2000-11-16, 2000-11-30, 2001-05-23, 200…
+## $ claim_type       &lt;chr&gt; &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;…
+## $ amount           &lt;dbl&gt; 313.91, 1598.53, 1459.29, 1556.08, 3734.53, 2624.53,…</code></pre>
+<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb22-1" data-line-number="1">irl_data_coltypes_tbl &lt;-<span class="st"> </span><span class="kw">read_csv</span>(<span class="st">'data/IRL_claims_data.csv'</span>,</a>
+<a class="sourceLine" id="cb22-2" data-line-number="2">                                  <span class="dt">col_types =</span> <span class="kw">cols</span>(<span class="dt">year =</span> <span class="kw">col_integer</span>())</a>
+<a class="sourceLine" id="cb22-3" data-line-number="3">                                  )</a>
+<a class="sourceLine" id="cb22-4" data-line-number="4"></a>
+<a class="sourceLine" id="cb22-5" data-line-number="5"><span class="kw">glimpse</span>(irl_data_coltypes_tbl)</a></code></pre></div>
 <pre><code>## Observations: 6,276
 ## Variables: 8
-## $ country_code     &lt;chr&gt; &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;...
-## $ year             &lt;int&gt; 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 20...
-## $ claim_id         &lt;chr&gt; &quot;IRL200001CL0002&quot;, &quot;IRL200001CL0002&quot;, &quot;IRL200001CL...
-## $ incident_date    &lt;date&gt; 2000-01-08, 2000-01-08, 2000-01-08, 2000-01-08, 2...
-## $ report_date      &lt;date&gt; 2000-02-15, 2000-02-15, 2000-02-15, 2000-02-15, 2...
-## $ transaction_date &lt;date&gt; 2000-05-30, 2000-11-16, 2000-11-30, 2001-05-23, 2...
-## $ claim_type       &lt;chr&gt; &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;P...
-## $ amount           &lt;dbl&gt; 313.91, 1598.53, 1459.29, 1556.08, 3734.53, 2624.5...</code></pre>
+## $ country_code     &lt;chr&gt; &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;IRL&quot;, &quot;IR…
+## $ year             &lt;int&gt; 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000…
+## $ claim_id         &lt;chr&gt; &quot;IRL200001CL0002&quot;, &quot;IRL200001CL0002&quot;, &quot;IRL200001CL00…
+## $ incident_date    &lt;date&gt; 2000-01-08, 2000-01-08, 2000-01-08, 2000-01-08, 200…
+## $ report_date      &lt;date&gt; 2000-02-15, 2000-02-15, 2000-02-15, 2000-02-15, 200…
+## $ transaction_date &lt;date&gt; 2000-05-30, 2000-11-16, 2000-11-30, 2001-05-23, 200…
+## $ claim_type       &lt;chr&gt; &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;…
+## $ amount           &lt;dbl&gt; 313.91, 1598.53, 1459.29, 1556.08, 3734.53, 2624.53,…</code></pre>
 <p><code>readr</code> provides for all the major data types you would want such as integers, doubles, strings, logicals and so on.</p>
 <p>See <code>?cols</code> for more details.</p>
 <p>Another convenient usage of the <code>readr</code> functions is that it provides you with a column-specification object if you do not include the <code>col_types</code> parameter. This can be a useful starting point for modifying the specification as you can copy-and-paste it.</p>
@@ -1882,41 +1828,122 @@ div.tocify {
 <h2><span class="header-section-number">1.3</span> Reading Excel Files</h2>
 <p>While one common way to read data from Excel is to export the relevant worksheets as a CSV and go from there, it is often more convenient to read from an Excel file directly.</p>
 <p>R has a few ways of interfacing with Excel, but the best package for this is <code>readxl</code>, which is built on the libxls - an open source library.</p>
-<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb29-1" data-line-number="1"><span class="kw">library</span>(readxl)</a>
-<a class="sourceLine" id="cb29-2" data-line-number="2"></a>
-<a class="sourceLine" id="cb29-3" data-line-number="3">data_xls_tbl &lt;-<span class="st"> </span><span class="kw">read_excel</span>(<span class="st">&#39;data/Claim Data.xlsx&#39;</span>)</a>
-<a class="sourceLine" id="cb29-4" data-line-number="4"></a>
-<a class="sourceLine" id="cb29-5" data-line-number="5"><span class="kw">glimpse</span>(data_xls_tbl)</a></code></pre></div>
+<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb24-1" data-line-number="1"><span class="kw">library</span>(readxl)</a>
+<a class="sourceLine" id="cb24-2" data-line-number="2"></a>
+<a class="sourceLine" id="cb24-3" data-line-number="3">data_xls_tbl &lt;-<span class="st"> </span><span class="kw">read_excel</span>(<span class="st">'data/Claim Data.xlsx'</span>)</a>
+<a class="sourceLine" id="cb24-4" data-line-number="4"></a>
+<a class="sourceLine" id="cb24-5" data-line-number="5"><span class="kw">glimpse</span>(data_xls_tbl)</a></code></pre></div>
 <pre><code>## Observations: 452,268
 ## Variables: 8
-## $ `Country Code`     &lt;chr&gt; &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;,...
-## $ Year               &lt;dbl&gt; 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, ...
-## $ `Claim ID`         &lt;chr&gt; &quot;AUT200001CL0001&quot;, &quot;AUT200001CL0001&quot;, &quot;AUT200001...
-## $ `Incident Date`    &lt;chr&gt; &quot;2000-01-03&quot;, &quot;2000-01-03&quot;, &quot;2000-01-05&quot;, &quot;2000-...
-## $ `Report Date`      &lt;chr&gt; &quot;2000-01-20&quot;, &quot;2000-01-20&quot;, &quot;2000-01-13&quot;, &quot;2000-...
-## $ `Transaction Date` &lt;chr&gt; &quot;2001-10-06&quot;, &quot;2007-08-31&quot;, &quot;2000-03-12&quot;, &quot;2001-...
-## $ `Claim Type`       &lt;chr&gt; &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, ...
-## $ Amount             &lt;dbl&gt; 501.87, 1195.22, 80.06, 406.39, 644.63, 386.06, ...</code></pre>
-<div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb31-1" data-line-number="1"><span class="kw">print</span>(data_xls_tbl)</a></code></pre></div>
+## $ `Country Code`     &lt;chr&gt; &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;AUT&quot;, &quot;…
+## $ Year               &lt;dbl&gt; 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 20…
+## $ `Claim ID`         &lt;chr&gt; &quot;AUT200001CL0001&quot;, &quot;AUT200001CL0001&quot;, &quot;AUT200001CL…
+## $ `Incident Date`    &lt;chr&gt; &quot;2000-01-03&quot;, &quot;2000-01-03&quot;, &quot;2000-01-05&quot;, &quot;2000-01…
+## $ `Report Date`      &lt;chr&gt; &quot;2000-01-20&quot;, &quot;2000-01-20&quot;, &quot;2000-01-13&quot;, &quot;2000-01…
+## $ `Transaction Date` &lt;chr&gt; &quot;2001-10-06&quot;, &quot;2007-08-31&quot;, &quot;2000-03-12&quot;, &quot;2001-05…
+## $ `Claim Type`       &lt;chr&gt; &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;PD&quot;, &quot;P…
+## $ Amount             &lt;dbl&gt; 501.87, 1195.22, 80.06, 406.39, 644.63, 386.06, 29…</code></pre>
+<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb26-1" data-line-number="1"><span class="kw">print</span>(data_xls_tbl)</a></code></pre></div>
 <pre><code>## # A tibble: 452,268 x 8
 ##    `Country Code`  Year `Claim ID` `Incident Date` `Report Date`
 ##    &lt;chr&gt;          &lt;dbl&gt; &lt;chr&gt;      &lt;chr&gt;           &lt;chr&gt;        
-##  1 AUT             2000 AUT200001~ 2000-01-03      2000-01-20   
-##  2 AUT             2000 AUT200001~ 2000-01-03      2000-01-20   
-##  3 AUT             2000 AUT200001~ 2000-01-05      2000-01-13   
-##  4 AUT             2000 AUT200001~ 2000-01-05      2000-01-13   
-##  5 AUT             2000 AUT200001~ 2000-01-05      2000-01-13   
-##  6 AUT             2000 AUT200001~ 2000-01-06      2000-01-15   
-##  7 AUT             2000 AUT200001~ 2000-01-06      2000-01-15   
-##  8 AUT             2000 AUT200001~ 2000-01-06      2000-01-15   
-##  9 AUT             2000 AUT200001~ 2000-01-06      2000-01-15   
-## 10 AUT             2000 AUT200001~ 2000-01-06      2000-01-15   
-## # ... with 452,258 more rows, and 3 more variables: `Transaction Date` &lt;chr&gt;,
+##  1 AUT             2000 AUT200001… 2000-01-03      2000-01-20   
+##  2 AUT             2000 AUT200001… 2000-01-03      2000-01-20   
+##  3 AUT             2000 AUT200001… 2000-01-05      2000-01-13   
+##  4 AUT             2000 AUT200001… 2000-01-05      2000-01-13   
+##  5 AUT             2000 AUT200001… 2000-01-05      2000-01-13   
+##  6 AUT             2000 AUT200001… 2000-01-06      2000-01-15   
+##  7 AUT             2000 AUT200001… 2000-01-06      2000-01-15   
+##  8 AUT             2000 AUT200001… 2000-01-06      2000-01-15   
+##  9 AUT             2000 AUT200001… 2000-01-06      2000-01-15   
+## 10 AUT             2000 AUT200001… 2000-01-06      2000-01-15   
+## # … with 452,258 more rows, and 3 more variables: `Transaction Date` &lt;chr&gt;,
 ## #   `Claim Type` &lt;chr&gt;, Amount &lt;dbl&gt;</code></pre>
 <p>Unfortunately, while useful, <code>readxl</code> does not provide the convenient <code>col_type</code> interface we are familiar with: the column specification works differently and needs a data type for every column in the spreadsheet.</p>
 <p>While this is sometimes enough, one workaround is to force every column be treated as a string and immediately write it to disk as CSV. You can then use your standard <code>read_csv()</code> as before with all the convenience you had before.</p>
-<div class="sourceCode" id="cb33"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb33-1" data-line-number="1"><span class="kw">read_excel</span>(<span class="st">&#39;data/Claim Data.xlsx&#39;</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">write_csv</span>(<span class="dt">path =</span> <span class="st">&#39;data/temp_data.csv&#39;</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb28"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb28-1" data-line-number="1"><span class="kw">read_excel</span>(<span class="st">'data/Claim Data.xlsx'</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">write_csv</span>(<span class="dt">path =</span> <span class="st">'data/temp_data.csv'</span>)</a></code></pre></div>
 </div>
+</div>
+<div id="session-info" class="section level1">
+<h1><span class="header-section-number">2</span> Session Info</h1>
+<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb29-1" data-line-number="1">sessioninfo<span class="op">::</span><span class="kw">session_info</span>()</a></code></pre></div>
+<pre><code>## ─ Session info ───────────────────────────────────────────────────────────────
+##  setting  value                       
+##  version  R version 3.6.1 (2019-07-05)
+##  os       Debian GNU/Linux 9 (stretch)
+##  system   x86_64, linux-gnu           
+##  ui       X11                         
+##  language (EN)                        
+##  collate  en_US.UTF-8                 
+##  ctype    en_US.UTF-8                 
+##  tz       Etc/UTC                     
+##  date     2020-04-05                  
+## 
+## ─ Packages ───────────────────────────────────────────────────────────────────
+##  package     * version date       lib source        
+##  assertthat    0.2.1   2019-03-21 [1] CRAN (R 3.6.1)
+##  backports     1.1.5   2019-10-02 [1] CRAN (R 3.6.1)
+##  broom         0.5.2   2019-04-07 [1] CRAN (R 3.6.1)
+##  cellranger    1.1.0   2016-07-27 [1] CRAN (R 3.6.1)
+##  cli           2.0.0   2019-12-09 [1] CRAN (R 3.6.1)
+##  colorspace    1.4-1   2019-03-18 [1] CRAN (R 3.6.1)
+##  crayon        1.3.4   2017-09-16 [1] CRAN (R 3.6.1)
+##  DBI           1.0.0   2018-05-02 [1] CRAN (R 3.6.1)
+##  dbplyr        1.4.2   2019-06-17 [1] CRAN (R 3.6.1)
+##  digest        0.6.23  2019-11-23 [1] CRAN (R 3.6.1)
+##  dplyr       * 0.8.3   2019-07-04 [1] CRAN (R 3.6.1)
+##  evaluate      0.14    2019-05-28 [1] CRAN (R 3.6.1)
+##  fansi         0.4.0   2018-10-05 [1] CRAN (R 3.6.1)
+##  forcats     * 0.4.0   2019-02-17 [1] CRAN (R 3.6.1)
+##  fs            1.3.1   2019-05-06 [1] CRAN (R 3.6.1)
+##  generics      0.0.2   2018-11-29 [1] CRAN (R 3.6.1)
+##  ggplot2     * 3.2.1   2019-08-10 [1] CRAN (R 3.6.1)
+##  glue          1.3.1   2019-03-12 [1] CRAN (R 3.6.1)
+##  gtable        0.3.0   2019-03-25 [1] CRAN (R 3.6.1)
+##  haven         2.2.0   2019-11-08 [1] CRAN (R 3.6.1)
+##  hms           0.5.2   2019-10-30 [1] CRAN (R 3.6.1)
+##  htmltools     0.4.0   2019-10-04 [1] CRAN (R 3.6.1)
+##  httr          1.4.1   2019-08-05 [1] CRAN (R 3.6.1)
+##  jsonlite      1.6     2018-12-07 [1] CRAN (R 3.6.1)
+##  knitr         1.26    2019-11-12 [1] CRAN (R 3.6.1)
+##  lattice       0.20-38 2018-11-04 [2] CRAN (R 3.6.1)
+##  lazyeval      0.2.2   2019-03-15 [1] CRAN (R 3.6.1)
+##  lifecycle     0.1.0   2019-08-01 [1] CRAN (R 3.6.1)
+##  lubridate     1.7.4   2018-04-11 [1] CRAN (R 3.6.1)
+##  magrittr      1.5     2014-11-22 [1] CRAN (R 3.6.1)
+##  modelr        0.1.5   2019-08-08 [1] CRAN (R 3.6.1)
+##  munsell       0.5.0   2018-06-12 [1] CRAN (R 3.6.1)
+##  nlme          3.1-140 2019-05-12 [2] CRAN (R 3.6.1)
+##  pillar        1.4.2   2019-06-29 [1] CRAN (R 3.6.1)
+##  pkgconfig     2.0.3   2019-09-22 [1] CRAN (R 3.6.1)
+##  purrr       * 0.3.3   2019-10-18 [1] CRAN (R 3.6.1)
+##  R6            2.4.1   2019-11-12 [1] CRAN (R 3.6.1)
+##  Rcpp          1.0.3   2019-11-08 [1] CRAN (R 3.6.1)
+##  readr       * 1.3.1   2018-12-21 [1] CRAN (R 3.6.1)
+##  readxl      * 1.3.1   2019-03-13 [1] CRAN (R 3.6.1)
+##  reprex        0.3.0   2019-05-16 [1] CRAN (R 3.6.1)
+##  rlang         0.4.2   2019-11-23 [1] CRAN (R 3.6.1)
+##  rmarkdown     1.18    2019-11-27 [1] CRAN (R 3.6.1)
+##  rstudioapi    0.10    2019-03-19 [1] CRAN (R 3.6.1)
+##  rvest         0.3.5   2019-11-08 [1] CRAN (R 3.6.1)
+##  scales        1.1.0   2019-11-18 [1] CRAN (R 3.6.1)
+##  sessioninfo   1.1.1   2018-11-05 [1] CRAN (R 3.6.1)
+##  stringi       1.4.3   2019-03-12 [1] CRAN (R 3.6.1)
+##  stringr     * 1.4.0   2019-02-10 [1] CRAN (R 3.6.1)
+##  tibble      * 2.1.3   2019-06-06 [1] CRAN (R 3.6.1)
+##  tidyr       * 1.0.0   2019-09-11 [1] CRAN (R 3.6.1)
+##  tidyselect    0.2.5   2018-10-11 [1] CRAN (R 3.6.1)
+##  tidyverse   * 1.3.0   2019-11-21 [1] CRAN (R 3.6.1)
+##  utf8          1.1.4   2018-05-24 [1] CRAN (R 3.6.1)
+##  vctrs         0.2.0   2019-07-05 [1] CRAN (R 3.6.1)
+##  withr         2.1.2   2018-03-15 [1] CRAN (R 3.6.1)
+##  xfun          0.11    2019-11-12 [1] CRAN (R 3.6.1)
+##  xml2          1.2.2   2019-08-09 [1] CRAN (R 3.6.1)
+##  yaml          2.2.0   2018-07-25 [1] CRAN (R 3.6.1)
+##  zeallot       0.1.0   2018-01-28 [1] CRAN (R 3.6.1)
+## 
+## [1] /usr/local/lib/R/site-library
+## [2] /usr/local/lib/R/library</code></pre>
 </div>
 
 
@@ -1937,6 +1964,49 @@ $(document).ready(function () {
 });
 
 
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = false;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
 </script>
 
 <!-- dynamically load mathjax for compatibility with self-contained -->

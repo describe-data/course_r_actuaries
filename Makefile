@@ -26,6 +26,7 @@ docker-run:
 	  -p 8787:8787 \
 	  -e USER=${DOCKER_USER} \
 	  -e PASSWORD=password \
+	  -v "${PWD}":"/home/${DOCKER_USER}/${PROJECT_NAME}_dynamic":rw \
 	  ${IMAGE_TAG}
 
 echo-reponame:

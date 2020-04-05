@@ -5,5 +5,5 @@
 .Rproj.user/
 .Rproj.user
 
-data/*.feather
+data/*.rds
 data/temp_data.csv

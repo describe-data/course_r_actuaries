@@ -1,8 +1,8 @@
 ---
 title: "Real-world R for Actuaries"
 subtitle: "Loading Data"
-author: "Mick Cooney <mcooney@agrippadataconsulting.com>"
-date: "2019-02-18"
+author: "Mick Cooney <mcooney@describedata.com>"
+date: "2019-04-08"
 output:
   html_document:
     fig_caption: yes
@@ -17,13 +17,17 @@ output:
 ---
 
 ```{r set_options, echo=FALSE}
-options(width = 80L
-       ,warn  = 1)
+options(width = 80L,
+        warn  = 1)
 
-knitr::opts_chunk$set(tidy  = FALSE
-                     ,cache = FALSE
-                     ,fig.height =  7
-                     ,fig.width  = 11)
+knitr::opts_chunk$set(tidy       = FALSE,
+                      cache      = FALSE,
+                      warning    = FALSE,
+                      message    = FALSE,
+                      fig.height =     7,
+                      fig.width  =    11)
+
+library(tidyverse)
 ```
 
 
@@ -47,8 +51,6 @@ data is in the file `GBR_claims_data.csv` and so on.
 To get started, we are first going to load in the IRL data and look at it.
 
 ```{r load_irl_data, echo=TRUE}
-library(tidyverse)
-
 irl_data_tbl <- read_csv('data/IRL_claims_data.csv')
 
 print(irl_data_tbl)
@@ -62,6 +64,28 @@ It is important to look at your data after you load it!
 glimpse(irl_data_tbl)
 ```
 
+If we do not provide any specification for the column types, `read_csv` will
+output the specification used. To remove this warning, we supply our own
+spec to ensure the data types are fixed.
+
+```{r load_data_with_spec, echo=TRUE}
+data_cols <- cols(
+  country_code     = col_character(),
+  year             = col_double(),
+  claim_id         = col_character(),
+  incident_date    = col_date(format = ""),
+  report_date      = col_date(format = ""),
+  transaction_date = col_date(format = ""),
+  claim_type       = col_character(),
+  amount           = col_double()
+)
+
+
+irl_data_tbl <- read_csv('data/IRL_claims_data.csv',
+                         col_types = data_cols)
+
+irl_data_tbl %>% glimpse()
+```
 
 ### Reading Multiple Data Files
 
@@ -73,16 +97,17 @@ join the data together.
 
 
 ```{r load_multiple_files, echo=TRUE}
-irl_data_tbl <- read_csv('data/IRL_claims_data.csv')
-gbr_data_tbl <- read_csv('data/GBR_claims_data.csv')
-deu_data_tbl <- read_csv('data/DEU_claims_data.csv')
+irl_data_tbl <- read_csv('data/IRL_claims_data.csv', col_types = data_cols)
+gbr_data_tbl <- read_csv('data/GBR_claims_data.csv', col_types = data_cols)
+deu_data_tbl <- read_csv('data/DEU_claims_data.csv', col_types = data_cols)
 
 
-multiple_data_tbl <- list(irl_data_tbl
-                         ,gbr_data_tbl
-                         ,deu_data_tbl
-                          ) %>%
-    bind_rows()
+multiple_data_tbl <- list(
+    irl_data_tbl,
+    gbr_data_tbl,
+    deu_data_tbl
+    ) %>%
+  bind_rows()
 
 
 glimpse(multiple_data_tbl)
@@ -123,19 +148,19 @@ and provide the code as a recipe.
 
 ```{r load_files_programmatically, echo=TRUE}
 claim_transactions_tbl <- tibble(file_src = data_files) %>%
-    ## Read in each file as a table
-    mutate(data = map(file_src, read_csv, col_types = cols())) %>%
-  
-    ## Expand out each individual table
-    unnest() %>%
-  
-    ## Remove the filename as we do not need it
-    dplyr::select(-file_src) %>%
-  
-    ## Calculate some derived values
-    mutate(claim_lifetime = as.numeric(transaction_date - incident_date)
-          ,yearmonth      = format(incident_date, '%Y%m')
-    )
+  ## Read in each file as a table
+  mutate(data = map(file_src, read_csv, col_types = cols())) %>%
+
+  ## Expand out each individual table
+  unnest(data) %>%
+
+  ## Remove the filename as we do not need it
+  dplyr::select(-file_src) %>%
+
+  ## Calculate some derived values
+  mutate(claim_lifetime = as.numeric(transaction_date - incident_date),
+         yearmonth      = format(incident_date, '%Y%m')
+  )
 
 glimpse(claim_transactions_tbl)
 print(claim_transactions_tbl)
@@ -170,8 +195,8 @@ irl_data_tbl <- read_csv('data/IRL_claims_data.csv')
 glimpse(irl_data_tbl)
 
 
-irl_data_coltypes_tbl <- read_csv('data/IRL_claims_data.csv'
-                                 ,col_types = cols(year = col_integer())
+irl_data_coltypes_tbl <- read_csv('data/IRL_claims_data.csv',
+                                  col_types = cols(year = col_integer())
                                   )
 
 glimpse(irl_data_coltypes_tbl)
@@ -217,4 +242,11 @@ your standard `read_csv()` as before with all the convenience you had before.
 
 ```{r read_write_excel_file, echo=TRUE}
 read_excel('data/Claim Data.xlsx') %>% write_csv(path = 'data/temp_data.csv')
+```
+
+
+# Session Info
+
+```{r show_session_info, echo=TRUE}
+sessioninfo::session_info()
 ```

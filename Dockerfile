@@ -9,6 +9,8 @@ RUN apt-get update \
   && apt-get clean \
   && mkdir -p $HOME/.R \
   && install2.r --error \
+    xts \
+    sp \
     cowplot \
     snakecase \
     fs \
@@ -16,10 +18,11 @@ RUN apt-get update \
 
 RUN Rscript -e 'install.packages("CASdatasets", repos = "http://cas.uqam.ca/pub/R/", type="source")'
 
-COPY *.Rmd /home/rstudio/course_r_actuaries/
-COPY *.R /home/rstudio/course_r_actuaries/
-COPY course_r_actuaries.Rproj /home/rstudio/course_r_actuaries/
+COPY *.Rmd  /home/rstudio/course_r_actuaries/
+COPY *.html /home/rstudio/course_r_actuaries/
+COPY *.R    /home/rstudio/course_r_actuaries/
 COPY data/* /home/rstudio/course_r_actuaries/data/
+COPY course_r_actuaries.Rproj /home/rstudio/course_r_actuaries/
 
 
 

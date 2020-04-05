@@ -1,8 +1,8 @@
 ---
 title: "Real-world R for Actuaries"
 subtitle: "Checking and Exploring Data"
-author: "Mick Cooney <mcooney@agrippadataconsulting.com>"
-date: "2019-02-18"
+author: "Mick Cooney <mcooney@describedata.com>"
+date: "2019-04-08"
 output:
   html_document:
     fig_caption: yes
@@ -17,13 +17,17 @@ output:
 ---
 
 ```{r set_options, echo=FALSE}
-options(width = 80L
-       ,warn  = 1)
+options(width = 80L,
+        warn  = 1)
 
-knitr::opts_chunk$set(tidy  = FALSE
-                     ,cache = FALSE
-                     ,fig.height =  7
-                     ,fig.width  = 11)
+knitr::opts_chunk$set(tidy       = FALSE,
+                      cache      = FALSE,
+                      warning    = FALSE,
+                      message    = FALSE,
+                      fig.height =     7,
+                      fig.width  =    11)
+
+library(tidyverse)
 ```
 
 
@@ -99,8 +103,8 @@ subsetting only the claims for Ireland (IRL).
 
 ```{r filter_irl_rows, echo=TRUE}
 irl_data_tbl <- claim_transactions_tbl %>%
-    filter(country_code == 'IRL') %>%
-    select(country_code, year, claim_id, transaction_date, claim_type, amount)
+  filter(country_code == 'IRL') %>%
+  select(country_code, year, claim_id, transaction_date, claim_type, amount)
 
 glimpse(irl_data_tbl)
 ```
@@ -109,8 +113,8 @@ If we put a `-` symbol in front of column names, we exclude those instead.
 
 ```{r filter_irl_rows_removal, echo=TRUE}
 irl_data_tbl <- claim_transactions_tbl %>% 
-    filter(country_code == 'IRL') %>%
-    select(-incident_date, -report_date)
+  filter(country_code == 'IRL') %>%
+  select(-incident_date, -report_date)
 
 glimpse(irl_data_tbl)
 ```
@@ -119,10 +123,10 @@ We can have multiple conditions at once in a `filter()` condition:
 
 ```{r filter_irl_2015_data, echo=TRUE}
 irl_2015_data_tbl <- claim_transactions_tbl %>% 
-    filter(country_code == 'IRL'
-          ,year         == 2015
-           ) %>%
-    select(-incident_date, -report_date)
+  filter(country_code == 'IRL',
+         year         == 2015
+         ) %>%
+  select(-incident_date, -report_date)
 
 glimpse(irl_2015_data_tbl)
 ```
@@ -135,16 +139,16 @@ date. We do this using `arrange()`:
 
 ```{r print_data_incident_date, echo=TRUE}
 claim_snapshot_tbl %>% 
-    arrange(incident_date) %>%
-    print()
+  arrange(incident_date) %>%
+  print()
 ```
 
 We could also show the rows by reporting date:
 
 ```{r print_date_report_date, echo=TRUE}
 claim_snapshot_tbl %>% 
-    arrange(report_date) %>%
-    print()
+  arrange(report_date) %>%
+  print()
 ```
 
 
@@ -154,8 +158,8 @@ We create new columns in our dataset by using `mutate()`:
 
 ```{r create_new_column, echo=TRUE}
 claim_transactions_tbl %>%
-    mutate(reporting_delay_days = as.numeric(report_date - incident_date)) %>%
-    print()
+  mutate(reporting_delay_days = as.numeric(report_date - incident_date)) %>%
+  print()
 ```
 
 
@@ -171,13 +175,13 @@ We start by calculating some summary values of the snapshot data:
 
 ```{r summarise_reporting_delays}
 claim_snapshot_tbl <- claim_snapshot_tbl %>%
-    mutate(reporting_delay_days = as.numeric(report_date - incident_date))
+  mutate(reporting_delay_days = as.numeric(report_date - incident_date))
 
 claim_snapshot_tbl %>%
-    summarise(mean_delay   = mean(reporting_delay_days)
-             ,sd_delay     = sd(reporting_delay_days)
-             ,median_delay = median(reporting_delay_days)
-              )
+  summarise(mean_delay   = mean(reporting_delay_days),
+            sd_delay     = sd(reporting_delay_days),
+            median_delay = median(reporting_delay_days)
+            )
 ```
 
 
@@ -194,12 +198,12 @@ by `country_code`
 
 ```{r print_onegroup_summaries, echo=TRUE}
 claim_snapshot_tbl %>%
-    group_by(country_code) %>%
-    summarise(mean_delay   = mean(reporting_delay_days)
-             ,sd_delay     = sd(reporting_delay_days)
-             ,median_delay = median(reporting_delay_days)
-              ) %>%
-    ungroup()
+  group_by(country_code) %>%
+  summarise(mean_delay   = mean(reporting_delay_days),
+            sd_delay     = sd(reporting_delay_days),
+            median_delay = median(reporting_delay_days)
+            ) %>%
+  ungroup()
 ```
 
 
@@ -208,12 +212,12 @@ by both year and country:
 
 ```{r print_twogroup_summaries, echo=TRUE}
 claim_snapshot_tbl %>%
-    group_by(country_code, year) %>%
-    summarise(mean_delay   = mean(reporting_delay_days)
-             ,sd_delay     = sd(reporting_delay_days)
-             ,median_delay = median(reporting_delay_days)
-              ) %>%
-    ungroup()
+  group_by(country_code, year) %>%
+  summarise(mean_delay   = mean(reporting_delay_days),
+            sd_delay     = sd(reporting_delay_days),
+            median_delay = median(reporting_delay_days)
+            ) %>%
+  ungroup()
 ```
 
 
@@ -228,9 +232,9 @@ have discussed, but `dplyr` provides a shortcut function `top_n()`
 
 ```{r print_biggest_claim, echo=TRUE}
 claim_snapshot_tbl %>%
-    group_by(country_code, year, claim_type) %>%
-    top_n(1, wt = amount) %>%
-    print()
+  group_by(country_code, year, claim_type) %>%
+  top_n(1, wt = amount) %>%
+  print()
 ```
 
 
@@ -247,18 +251,18 @@ This is easiest explained by an example.
 
 ```{r print_triangle_table_with_spread, echo=TRUE}
 claim_triangles_tbl %>%
-    filter(country_code == 'AUT', claim_type == 'PD') %>%
-    print()
+  filter(country_code == 'AUT', claim_type == 'PD') %>%
+  print()
 
 
 aut_pd_2010_triangle_tbl <- claim_triangles_tbl %>%
-    filter(country_code == 'AUT', claim_type == 'PD', claim_year >= 2010) %>%
-    mutate(total_cuml = total_cuml / 1e6) %>%
-    spread(dev_time, total_cuml)
+  filter(country_code == 'AUT', claim_type == 'PD', claim_year >= 2010) %>%
+  mutate(total_cuml = total_cuml / 1e6) %>%
+  spread(dev_time, total_cuml)
 
 aut_pd_2010_triangle_tbl %>%
-    select(-country_code, -claim_type) %>%
-    print()
+  select(-country_code, -claim_type) %>%
+  print()
 ```
 
 
@@ -267,11 +271,11 @@ for both the 'key' and 'value' columns if we wish to rename those.
 
 ```{r print_gathered_triangle, echo=TRUE}
 claim_gathered_tbl <- aut_pd_2010_triangle_tbl %>%
-    gather(dev_time, total_cuml, -country_code, -claim_type, -claim_year, convert = TRUE)
+  gather(dev_time, total_cuml, -country_code, -claim_type, -claim_year, convert = TRUE)
 
 claim_gathered_tbl %>%
-    arrange(claim_year, dev_time) %>%
-    print()
+  arrange(claim_year, dev_time) %>%
+  print()
 ```
 
 
@@ -297,11 +301,11 @@ claim development into a proportion rather than a currency amount.
 
 ```{r setup_join_data, echo=TRUE}
 pd_trans_tbl <- claim_transactions_tbl %>%
-    filter(claim_type == 'PD')
+  filter(claim_type == 'PD')
 
 pd_final_gbr_tbl <- claim_final_tbl %>%
-    filter(claim_type == 'PD', country_code == 'GBR') %>%
-    dplyr::select(claim_id, ultimate)
+  filter(claim_type == 'PD', country_code == 'GBR') %>%
+  dplyr::select(claim_id, ultimate)
 
 pd_trans_tbl     %>% glimpse()
 pd_final_gbr_tbl %>% glimpse()
@@ -313,7 +317,7 @@ matching rows in both tables.
 
 ```{r show_inner_join, echo=TRUE}
 claims_join_tbl <- pd_trans_tbl %>%
-    inner_join(pd_final_gbr_tbl, by = 'claim_id')
+  inner_join(pd_final_gbr_tbl, by = 'claim_id')
 
 claims_join_tbl %>% glimpse()
 ```
@@ -326,7 +330,7 @@ matching and the matched rows from the joining table. Empty values are set to
 
 ```{r show_left_join, echo=TRUE}
 claims_join_tbl <- pd_trans_tbl %>%
-    left_join(pd_final_gbr_tbl, by = 'claim_id')
+  left_join(pd_final_gbr_tbl, by = 'claim_id')
 
 claims_join_tbl %>% glimpse()
 ```
@@ -356,16 +360,23 @@ claim_id_all   <- claim_transactions_tbl %>% pull(claim_id)   %>% unique()
 claim_type_all <- claim_transactions_tbl %>% pull(claim_type) %>% unique()
 
 all_combined_tbl <- crossing(
-    claim_id   = claim_id_all
-   ,claim_type = claim_type_all
+  claim_id   = claim_id_all,
+  claim_type = claim_type_all
 )
 
 all_combined_tbl %>% glimpse()
 
 single_type_tbl <- all_combined_tbl %>%
-    anti_join(claim_transactions_tbl, by = c('claim_id', 'claim_type')) %>%
-    dplyr::select(claim_id) %>%
-    inner_join(claim_transactions_tbl, by = 'claim_id')
+  anti_join(claim_transactions_tbl, by = c('claim_id', 'claim_type')) %>%
+  dplyr::select(claim_id) %>%
+  inner_join(claim_transactions_tbl, by = 'claim_id')
 
 single_type_tbl %>% glimpse()
+```
+
+
+# Session Info
+
+```{r show_session_info, echo=TRUE}
+sessioninfo::session_info()
 ```
