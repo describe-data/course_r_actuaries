@@ -16,7 +16,7 @@ output:
   pdf_document: default
 ---
 
-```{r set_options, echo=FALSE}
+```{r set_options, echo=FALSE, warning=FALSE, message=FALSE}
 options(width = 80L,
         warn  = 1)
 

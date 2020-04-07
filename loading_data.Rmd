@@ -16,7 +16,7 @@ output:
   pdf_document: default
 ---
 
-```{r set_options, echo=FALSE}
+```{r set_options, echo=FALSE, warnings=FALSE, message=FALSE}
 options(width = 80L,
         warn  = 1)
 
@@ -86,6 +86,7 @@ irl_data_tbl <- read_csv('data/IRL_claims_data.csv',
 
 irl_data_tbl %>% glimpse()
 ```
+
 
 ### Reading Multiple Data Files
 
