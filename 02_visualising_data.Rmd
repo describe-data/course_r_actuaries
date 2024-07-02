@@ -1,0 +1,30 @@
+---
+title: "R for Actuaries"
+subtitle: "Part 3 - Visualising Data"
+author: "Mick Cooney <mcooney@agrippadataconsulting.com>"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    number_sections: true
+    fig_caption: yes
+    theme: cerulean
+  pdf_document: default
+---
+
+```{r set_options, echo=FALSE}
+options(width = 80L
+       ,warn  = 1)
+
+knitr::opts_chunk$set(tidy  = FALSE
+                     ,cache = FALSE
+                     ,fig.height =  7
+                     ,fig.width  = 11)
+```
+
+
+# Visualising Data
+
+
+
+

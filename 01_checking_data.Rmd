@@ -1,0 +1,62 @@
+---
+title: "R for Actuaries"
+subtitle: "Part 1 - Checking and Exploring Data"
+author: "Mick Cooney <mcooney@agrippadataconsulting.com>"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    number_sections: true
+    fig_caption: yes
+    theme: cerulean
+  pdf_document: default
+---
+
+```{r set_options, echo=FALSE}
+options(width = 80L
+       ,warn  = 1)
+
+knitr::opts_chunk$set(tidy  = FALSE
+                     ,cache = FALSE
+                     ,fig.height =  7
+                     ,fig.width  = 11)
+```
+
+
+# Checking and Exploring Data
+
+In this exercise we are going to build claims triangles from transactional claim
+data. The claims are from a fictional captive insurer for a large logistics
+company with operations all across Europe.
+
+The data has been provided to us in multiple files, with each file sorted
+according to country. The data is current as of date 30 June 2017.
+
+Reading data from a file is an important topic, but is not a good place to
+start learning: 80% of the time it is routine and boring, the other 20% of the
+time it is fiddly and frustrating! We will return to it later.
+
+For now, we have a script that loads the table `claims_transactions_tbl` into
+memory.
+
+```{r load_data, echo=TRUE}
+source('load_data_script.R')
+```
+
+## Claims Transactions Data
+
+THe first thing to do with a dataset is inspect it: look at the first few rows,
+check the number of rows and columns, and check the data types.
+
+```{r inspect_claims_transactions, echo=TRUE}
+print(claims_transactions_tbl)
+
+glimpse(claims_transactions_tbl)
+```
+
+
+
+
+
+
+
