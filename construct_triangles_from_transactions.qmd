@@ -1,0 +1,218 @@
+---
+title: "Constructing Triangles from Claims Transactions"
+author: "Mick Cooney <mcooney@describedata.com>"
+date: "Last updated: `r format(Sys.time(), '%B %d, %Y')`"
+editor: source
+execute:
+  message: false
+  warning: false
+  error: false
+format:
+  html:
+    light: superhero
+    dark: darkly
+    anchor-sections: true
+    embed-resources: true
+    number-sections: true
+    smooth-scroll: true
+    toc: true
+    toc-depth: 3
+    toc-location: left
+    code-fold: true
+    code-summary: "Show code"
+---
+
+```{r}
+#| label: knit_opts
+#| include: false
+library(tidyverse)
+library(conflicted)
+library(scales)
+library(fs)
+library(purrr)
+library(cowplot)
+library(glue)
+
+source("lib_utils.R")
+
+
+conflict_lst <- resolve_conflicts(
+  c("magrittr", "rlang", "dplyr", "readr", "purrr", "ggplot2", "MASS",
+    "fitdistrplus")
+  )
+
+
+options(
+  width = 80L,
+  warn  = 1,
+  mc.cores = parallelly::availableCores()
+  )
+
+
+set.seed(42)
+
+theme_set(theme_cowplot())
+```
+
+# Load Claim Transactions Data
+
+First we load up the transactional data for the claims
+
+```{r load_claim_transactions}
+#| echo: true
+
+claim_transactions_tbl <- read_rds("data/claims_transactions_tbl.rds") |>
+  filter(transaction_date < as.Date("2017-01-01"))
+
+claim_transactions_tbl |> glimpse()
+```
+
+We want to show all these transactions in a formatted table to give us a sense
+for what this data looks like.
+
+```{r display_transaction_table}
+#| echo: true
+
+claim_transactions_tbl |>
+  head(100) |>
+  knitr::kable()
+```
+
+
+# Constructing the Triangles
+
+Our transaction data tells us when various 'movements' on a claim occur, in 
+our simplified case, we will simply treat these as paid amounts and build a
+triangle on these.
+
+To do this effectively, we need to create our 'development periods' which are
+regular periods of time over which we want to build our triangles. For this
+exercise, we use yearly periods (but it could also be quarters or months or
+some other unit of time).
+
+To do this, we need to determine how many periods of time we want to expand
+across, which in this case will be the all the years from the earliest year up
+to the point of observation of the data, which for the purposes of this data
+is the start of 2017.
+
+```{r set_up_development_periods}
+#| echo: true
+
+min_year <- claim_transactions_tbl |>
+  pull(year) |>
+  min()
+
+max_year <- claim_transactions_tbl |>
+  pull(year) |>
+  max()
+
+dev_periods_tbl <- tibble(
+  dev_period = 1:(max_year - min_year + 1)
+  )
+
+
+claim_development_periods_tbl <- claim_transactions_tbl |>
+  select(country_code, year, claim_id, claim_type) |>
+  distinct() |>
+  crossing(dev_periods_tbl)
+
+claim_transactions_periods_tbl <- claim_transactions_tbl |>
+  mutate(
+    dev_period = year(transaction_date) - year + 1
+    ) |>
+  select(country_code, year, claim_id, claim_type, dev_period, amount)
+```
+
+We now want to combine all this up into individual development period for each
+claim.
+
+```{r construct_claim_development_period_data}
+#| echo: true
+
+claim_full_development_tbl <- claim_development_periods_tbl |>
+  left_join(
+    claim_transactions_periods_tbl,
+    by = c("country_code", "year", "claim_id", "claim_type", "dev_period"),
+    relationship = "many-to-many"
+    ) |>
+  replace_na(
+    list(amount = 0)
+    ) |>
+  filter(year + dev_period < 2018)
+
+claim_full_development_tbl |> glimpse()
+```
+
+We now want to add up the various movements within a development period so
+we end up with just a single entry for each claim within a development period.
+
+```{r aggregate_claim_development_movements}
+#| echo: true
+
+claim_development_increments_tbl <- claim_full_development_tbl |>
+  count(
+    country_code, year, claim_id, claim_type, dev_period,
+    wt   = amount,
+    name = "period_increment"
+    )
+
+claim_development_increments_tbl |> glimpse()
+```
+
+
+We now want to aggregate for each underwriting year into each development
+period across all the claims. We then calculate the cumulative amounts.
+
+```{r calculate_development_incrementals_cumulatives}
+#| echo: true
+
+claim_development_data_tbl <- claim_development_increments_tbl |>
+  count(
+    country_code, year, claim_type, dev_period,
+    wt   = period_increment,
+    name = "reserving_increment"
+    ) |>
+  arrange(country_code, year, claim_type, dev_period) |>
+  mutate(
+    reserving_cumulative = cumsum(reserving_increment),
+    
+    .by = c(country_code, year, claim_type)
+    )
+```
+
+We now want to visualise one of these claim triangles such as the BI claims for
+Austria (AUT)
+
+```{r plot_austria_bi_development_patterns}
+#| echo: true
+
+plot_tbl <- claim_development_data_tbl |>
+  filter(
+    country_code == "AUT",
+    claim_type   == "BI"
+    ) |>
+  mutate(
+    year = as.character(year)
+    )
+
+
+ggplot(plot_tbl) +
+  geom_line(aes(x = dev_period, y = reserving_cumulative, colour = year)) +
+  scale_y_continuous(labels = label_comma()) +
+  labs(
+    x = "Development Period",
+    y = "Cumulative Amount",
+    colour = "UW Year",
+    title  = "Development Patterns"
+    )
+```
+
+
+
+# Session Info
+
+```{r show_session_info}
+#| echo: true
+
+sessioninfo::session_info()
+```
