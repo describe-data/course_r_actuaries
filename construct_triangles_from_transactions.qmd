@@ -27,18 +27,21 @@ format:
 #| include: false
 library(tidyverse)
 library(conflicted)
+library(magrittr)
 library(scales)
 library(fs)
 library(purrr)
 library(cowplot)
 library(glue)
+library(lubridate)
+
 
 source("lib_utils.R")
+source("lib_triangles.R")
 
 
 conflict_lst <- resolve_conflicts(
-  c("magrittr", "rlang", "dplyr", "readr", "purrr", "ggplot2", "MASS",
-    "fitdistrplus")
+  c("magrittr", "rlang", "dplyr", "readr", "purrr", "ggplot2", "lubridate")
   )
 
 
@@ -53,6 +56,7 @@ set.seed(42)
 
 theme_set(theme_cowplot())
 ```
+
 
 # Load Claim Transactions Data
 
@@ -206,6 +210,67 @@ ggplot(plot_tbl) +
     title  = "Development Patterns"
     )
 ```
+
+
+# Using Triangle Construction Function
+
+We now have created a function that takes a set of transactions and converts
+it into the 'long' form of the triangles on a claim-by-claim basis (as this is
+a format commonly used for actuarial reserving software such as ResQ).
+
+This data is then easily reshaped into more traditional actuarial triangles.
+
+To start, we need a single set of transactions to transform, so for this data
+we will choose Austrian bodily-injury claims (`country_code` of AUT and
+`claim_type` is BI).
+
+```{r construct_transactions_dataset}
+#| echo: true
+
+use_tnxdata_tbl <- claim_transactions_tbl |>
+  filter(
+    country_code == "AUT",
+    claim_type   == "BI"
+    )
+
+use_tnxdata_tbl |> glimpse()
+```
+
+We have create a function called `construct_claim_triangles()` that allows us
+to select the origin date, development period and so on.
+
+
+
+```{r construct_annual_triangle_data}
+#| echo: true
+
+triangle_incr_annual_tbl <- use_tnxdata_tbl |>
+  construct_claim_triangles(
+    dev_period = "ann",
+    agg_type   = "incr",
+    as_at      = as.Date("2016-12-31")
+    )
+
+triangle_incr_annual_tbl |> glimpse()
+```
+
+We can also construct this triangle using quarterly development periods.
+
+```{r construct_quarterly_triangle_data}
+#| echo: true
+
+triangle_incr_quarter_tbl <- use_tnxdata_tbl |>
+  construct_claim_triangles(
+    dev_period = "qtr",
+    agg_type   = "incr",
+    as_at      = as.Date("2016-12-31")
+    )
+
+triangle_incr_quarter_tbl |> glimpse()
+```
+
+
+
 
 
 
